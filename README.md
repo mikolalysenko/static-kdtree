@@ -93,5 +93,9 @@ Release all resources associated with the kdtree
 
 **Time Complexity** `O(1)`
 
+# Comparison to other kdtree libraries
+
+**TODO**
+
 # Credits
 (c) 2014 Mikola Lysenko. MIT License

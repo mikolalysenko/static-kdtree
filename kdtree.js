@@ -2,16 +2,20 @@
 
 module.exports = createKDTree
 
+var unpack = require("ndarray-unpack")
+
+var ndarray = require("ndarray")
 var pack = require("ndarray-pack")
 var ndselect = require("ndarray-select")
 var ops = require("ndarray-ops")
 var pool = require("typedarray-pool")
-var scratch = require("ndarray-scratch")
+var ndscratch = require("ndarray-scratch")
 
-function KDTree(points) {
+function KDTree(points, ids, n, d) {
   this.points = points
-  this.dimension = points.shape[1]-1
-  this.length = points.shape[0]
+  this.ids = ids
+  this.dimension = d
+  this.length = n
 }
 
 var proto = KDTree.prototype
@@ -29,6 +33,7 @@ proto.range = function kdtRangeQuery(lo, hi, visit) {
   }
 
   var points = this.points
+  var ids = this.ids
 
   //Walk tree in level order, skipping subtree which do not intersect range
   var visitRange = ndscratch.malloc([n, 2, d])
@@ -44,25 +49,34 @@ proto.range = function kdtRangeQuery(lo, hi, visit) {
   pack(lo, visitRange.pick(0,0))
   pack(hi, visitRange.pick(0,1))
 
+  
   while(visitTop < visitCount) {
     var idx = visitIndex[2*visitTop]
     var k = visitIndex[2*visitTop+1]
 
-    var loidx = visitRange.index(visitTop, 0)
-    var hiidx = visitRange.index(visitTop, 1)
-    var pidx = points.index(idx)
+    /*
+    console.log("visitQ=", unpack(visitRange.hi(visitCount)))
+    console.log("range, idx=", idx, "k=", k, 
+      "lo=", unpack(visitRange.pick(visitTop, 0)), 
+      "hi=", unpack(visitRange.pick(visitTop, 1)), 
+      "point=", unpack(points.pick(idx)))
+    */
+
+    var loidx = visitRange.index(visitTop, 0, 0)
+    var hiidx = visitRange.index(visitTop, 1, 0)
+    var pidx = points.index(idx, 0)
 
     var visitPoint = true
     for(var i=0; i<d; ++i) {
       var pc = pointData[pidx+i]
-      if((rangeData[loidx + i] > pc) || 
-         (pc < rangeData[hiidx + i])) {
+      if((pc < rangeData[loidx + i]) || 
+         (rangeData[hiidx + i] < pc)) {
         visitPoint = false
         break
       }
     }
     if(visitPoint) {
-      retval = visit(pointData[pidx+d]|0)
+      retval = visit(ids[idx])
       if(retval !== undefined) {
         break
       }
@@ -78,11 +92,11 @@ proto.range = function kdtRangeQuery(lo, hi, visit) {
       if(left < n) {
         visitIndex[2*visitCount] = left
         visitIndex[2*visitCount+1] = nk
-        var y = visitRange.index(visitCount, 0)
+        var y = visitRange.index(visitCount, 0, 0)
         for(var i=0; i<d; ++i) {
           rangeData[y+i] = rangeData[loidx+i]
         }
-        var z = visitRange.index(visitCount, 1)
+        var z = visitRange.index(visitCount, 1, 0)
         for(var i=0; i<d; ++i) {
           rangeData[z+i] = rangeData[hiidx+i]
         }
@@ -95,11 +109,11 @@ proto.range = function kdtRangeQuery(lo, hi, visit) {
       if(right < n) {
         visitIndex[2*visitCount] = right
         visitIndex[2*visitCount+1] = nk
-        var y = visitRange.index(visitCount, 0)
+        var y = visitRange.index(visitCount, 0, 0)
         for(var i=0; i<d; ++i) {
           rangeData[y+i] = rangeData[loidx+i]
         }
-        var z = visitRange.index(visitCount, 1)
+        var z = visitRange.index(visitCount, 1, 0)
         for(var i=0; i<d; ++i) {
           rangeData[z+i] = rangeData[hiidx+i]
         }
@@ -107,23 +121,25 @@ proto.range = function kdtRangeQuery(lo, hi, visit) {
         visitCount += 1
       }
     }
+
+    //Increment pointer
+    visitTop += 1
   }
   ndscratch.free(visitRange)
   pool.free(visitIndex)
   return retval
 }
 
-
 proto.rnn = function(point, radius) {
+  //TODO: Implement this
 }
-
 
 proto.nn = function(point) {
   var n = this.length
   if(n < 1) {
     return -1
   }
-  //TODO: Special case
+  //TODO: Special case, optimize this
   var r = this.knn(point, 1)
   return r[0]
 }
@@ -132,18 +148,16 @@ proto.knn = function(point, k) {
   var d = this.dimension
   var n = this.length
   var points = this.points
+  var ids = this.ids
   if(n < k) {
-    var result = new Array(n)
-    for(var i=0; i<n; ++i) {
-      result[i] = points.get(i, d)|0
-    }
-    return result
+    return Array.prototype.slice.call(this.ids)
   }
-  
+  //TODO: Implement this
 }
 
 proto.dispose = function kdtDispose() {
   pool.free(this.points.data)
+  pool.freeInt32(this.ids)
   this.points = null
   this.length = 0
 }
@@ -151,6 +165,11 @@ proto.dispose = function kdtDispose() {
 function createKDTree(points) {
   var n, d, indexed
   if(Array.isArray(points)) {
+    n = points.length
+    if(n === 0) {
+      return new KDTree(null, null, 0, 0)
+    }
+    d = points[0].length
     indexed = ndarray(pool.mallocDouble(n*(d+1)), [n, d+1])
     pack(points, indexed.hi(n, d))
   } else {
@@ -176,38 +195,54 @@ function createKDTree(points) {
     }
 
     indexed = ndarray(pool.malloc(n*(d+1)), [n, d+1])
-    ops.assing(indexed.hi(n,d), points)
+    ops.assign(indexed.hi(n,d), points)
   }
   for(var i=0; i<n; ++i) {
     indexed.set(i, d, i)
   }
 
-  function buildTreeRec(array, k) {
-    var n = array.shape[0]
-    if(n <= 1) {
-      return
-    }
+  var pointArray = ndscratch.malloc([n, d], points.dtype)
+  var indexArray = pool.mallocInt32(n)
+  var pointer = 0
 
+  //Walk tree in level order
+  var toVisit = new Array(n)
+  var eoq = 1
+  toVisit[0] = [indexed, 0]
+  while(pointer < n) {
+    var head = toVisit[pointer]
+    var array = head[0]
+    var k = head[1]
+    var nn = array.shape[0]
+    
     //Find median
-    var n_2 = n>>>1
-    var median = ndselect(array, median, function(a,b) {
-      return a.get(k) - b.get(k)
-    })
-
-    //Swap with root
-    var root = array.pick(0)
-    for(var i=0; i<d; ++i) {
-      var tmp = median.get(i)
-      median.set(i, root.get(i))
-      root.set(i, tmp)
+    var median, n_2
+    if(nn > 1) {
+      n_2 = nn>>>1
+      median = ndselect(array, n_2, function(a,b) {
+        return a.get(k) - b.get(k)
+      })
+    } else {
+      median = array.pick(0)
     }
 
-    //Recurse
-    k = (k+1) % d
-    buildTreeRec(array.lo(1).hi(n_2), k)
-    buildTreeRec(array.hi(n_2), k)
-  }
-  buildTreeRec(indexed, 0)
+    //Copy into new array
+    ops.assign(pointArray.pick(pointer), median.hi(d))
+    indexArray[pointer] = median.get(d)
+    pointer += 1
 
-  return new KDTree(indexed)
+    //Queue new items
+    if(nn > 1) {
+      k = (k+1) % d
+      toVisit[eoq++] = [array.hi(n_2), k]
+      if(nn > 2) {
+        toVisit[eoq++] = [array.lo(n_2+1), k]
+      }
+    }
+  }
+
+  //Release indexed
+  pool.free(indexed.data)
+
+  return new KDTree(pointArray, indexArray, n, d)
 }
