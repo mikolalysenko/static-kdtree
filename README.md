@@ -27,6 +27,11 @@ var createKDTree = require("static-kdtree")
 ## Constructor
 
 #### `var kdt = createKDTree(points)`
+Creates a kdtree from the given collection of points.
+
+* `points` is either an array of arrays of length `d`, or else an [`ndarray`](https://github.com/mikolalysenko/ndarray) with shape `[n,d]`
+
+**Returns** A kdtree data structure
 
 ## Properties
 
