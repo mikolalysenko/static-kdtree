@@ -91,15 +91,17 @@ Returns a list of the k closest points to point in the tree.
 #### `kdt.ann(point, epsilon)`
 Return the index of the approximately closest point in the tree to the query point.
 
-**Time Complexity** Unknown.
+**Time Complexity** Unknown, but empirically faster than exact nn.
 
 #### `kdt.aknn(point, k, epsilon)`
 Returns a list of the k approximately closest points in the tree to the query point.
 
-**Time Complexity** Unknown.
+**Time Complexity** Unknown, but empirically faster than exact knn.
 
 #### `kdt.dispose()`
 Release all resources associated with the kdtree
+
+**Time Complexity** `O(1)`
 
 # Notes
 
