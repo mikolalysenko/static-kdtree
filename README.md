@@ -2,6 +2,8 @@ static-kdtree
 =============
 [kd-trees](http://en.wikipedia.org/wiki/K-d_tree) are a [compact](http://en.wikipedia.org/wiki/Succinct_data_structure) data structure for answering orthogonal range and nearest neighbor queries on higher dimensional point data in linear time.  While they are not as efficient at answering orthogonal range queries as [range trees](http://en.wikipedia.org/wiki/Range_tree), especially in low dimensions, kdtrees consume exponentially less space and support approximate nearest neighbor queries.
 
+This library works both in node.js and with [browserify](http://browserify.org/).
+
 
 **THIS MODULE IS A WORK IN PROGRESS**
 
