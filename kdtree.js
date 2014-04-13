@@ -113,6 +113,11 @@ proto.range = function kdtRangeQuery(lo, hi, visit) {
   return retval
 }
 
+
+proto.rnn = function(point, radius) {
+}
+
+
 proto.nn = function(point) {
   var n = this.length
   if(n < 1) {
@@ -120,16 +125,6 @@ proto.nn = function(point) {
   }
   //TODO: Special case
   var r = this.knn(point, 1)
-  return r[0]
-}
-
-proto.ann = function(point, epsilon) {
-  var n = this.length
-  if(n < 1) {
-    return -1
-  }
-  //TODO: Special case
-  var r = this.aknn(point, 1)
   return r[0]
 }
 
@@ -145,12 +140,6 @@ proto.knn = function(point, k) {
     return result
   }
   
-}
-
-proto.aknn = function(point, k, epsilon) {
-}
-
-proto.rnn = function(point, radius) {
 }
 
 proto.dispose = function kdtDispose() {

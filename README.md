@@ -86,26 +86,12 @@ Returns a list of the k closest points to point in the tree.
 
 **Returns** An array of indices of the exact `k` closest points in the tree to the query point.
 
-**Time Complexity** `O(n log(k))`, but may be faster if the points in the tree are uniformly distributed
-
-#### `kdt.ann(point, epsilon)`
-Return the index of the approximately closest point in the tree to the query point.
-
-**Time Complexity** Unknown, but empirically faster than exact nn.
-
-#### `kdt.aknn(point, k, epsilon)`
-Returns a list of the k approximately closest points in the tree to the query point.
-
-**Time Complexity** Unknown, but empirically faster than exact knn.
+**Time Complexity** `O((n + k) log(k))`, but may be faster if the points in the tree are uniformly distributed
 
 #### `kdt.dispose()`
 Release all resources associated with the kdtree
 
 **Time Complexity** `O(1)`
-
-# Notes
-
-Time complexity results for approximate nearest neighbor searching seems very mysterious.  I have not been able to find any good references/results on this subject that put hard theoretical bounds on these quantities.  Any further information on this subject would be greatly appreciated.
 
 # Credits
 (c) 2014 Mikola Lysenko. MIT License
