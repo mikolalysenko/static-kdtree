@@ -59,15 +59,15 @@ Executes an orthogonal range query on the kdtree
 **Time Complexity** `O(n^(1-1/d) + k)`, where `k` is the number of points in the range.
 
 #### `kdt.rnn(point, radius, visit)`
-Visit all points contained in the sphere of radius `r` centered at 
+Visit all points contained in the sphere of radius `r` centered at `point`
 
-* `point` is the center point for the query
+* `point` is the center point for the query, represented by a length `d` array
 * `radius` is the radius of the query sphere
 * `visit(idx)` is a function which is called once for every point contained in the ball.  As in the case of `kdt.range`, if `visit(idx)` returns a not undefined value, then iteration is terminated.
 
 **Returns** The last returned value of `visit`
 
-**Time Complexity** `O(n^(1-1/d) + k)`
+**Time Complexity** `O(n^(1-1/d) + k)`, where `k` is the number of points in the sphere
 
 #### `kdt.nn(point)`
 Returns the index of the closest point in the tree to the given query query point.
@@ -91,14 +91,19 @@ Returns a list of the k closest points to point in the tree.
 #### `kdt.ann(point, epsilon)`
 Return the index of the approximately closest point in the tree to the query point.
 
-
+**Time Complexity** Unknown.
 
 #### `kdt.aknn(point, k, epsilon)`
 Returns a list of the k approximately closest points in the tree to the query point.
 
+**Time Complexity** Unknown.
 
 #### `kdt.dispose()`
 Release all resources associated with the kdtree
+
+# Notes
+
+Time complexity results for approximate nearest neighbor searching seems very mysterious.  I have not been able to find any good references/results on this subject that put hard theoretical bounds on these quantities.  Any further information on this subject would be greatly appreciated.
 
 # Credits
 (c) 2014 Mikola Lysenko. MIT License
