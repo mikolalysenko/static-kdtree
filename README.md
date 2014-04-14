@@ -100,14 +100,15 @@ Visit all points contained in the sphere of radius `r` centered at `point`
 
 **Time Complexity** `O(n^(1-1/d) + k)`, where `k` is the number of points in the sphere
 
-#### `kdt.knn(point, k[, maxDistance])`
+#### `kdt.knn(point, k, maxDistance, visit)`
 Returns a list of the k closest points to point in the tree.
 
 * `point` is the point which is being queried
 * `k` is the number of points to query
-* `maxDistance` is an optional parameter which bounds the distance of the returned points. Default is `Infinity`
+* `maxDistance` bounds the distance of the returned points. To search the whole tree, pass in `Infinity`
+* `visit(idx)` is a function which is called once per element
 
-**Returns** An array of indices of the exact `k` closest points in the tree to the query point.
+**Returns** The last returned value of `visit`
 
 **Time Complexity** `O((n + k) log(k))`, but may be faster if the points in the tree are uniformly distributed
 

@@ -1,3 +1,9 @@
+var ndarray = require("ndarray")
+var ndselect = require("ndarray-select")
+var pack = require("ndarray-pack")
+var unpack = require("ndarray-unpack")
+var ndscratch = require("ndarray-scratch")
+
 module.exports = {
   name: "Linear scan",
   url: "http://en.wikipedia.org/wiki/Brute-force_search",
@@ -58,5 +64,37 @@ module.exports = {
     }
     var end = +Date.now()
     return [end - start, count]
+  },
+  knn: function(points, queries, repeat) {
+    //Use ndarray-select to partially sort elements
+    var m = queries.length
+    var d = points[0].length
+    var n = points.length
+    var sel = ndselect.compile([1,0], false, "float64")
+    var pointArray = ndscratch.malloc([n, 2])
+    var weight = 0
+    var start = Date.now()
+    for(var i=0; i<repeat; ++i) {
+      for(var j=0; j<m; ++j) {
+        var q = queries[j]
+        var p = q[0]
+        var k = q[1]
+        for(var l=0; l<n; ++l) {
+          var d2 = 0.0
+          for(var a=0; a<d; ++a) {
+            d2 += Math.pow(p[a] - points[l][a], 2)
+          }
+          pointArray.set(l, 0, d2)
+          pointArray.set(l, 1, l)
+        }
+        sel(pointArray, k)
+        for(var l=0; l<k; ++l) {
+          weight += pointArray.get(l, 1)
+        }
+      }
+    }
+    var end = Date.now()
+    ndscratch.free(pointArray)
+    return [end-start, weight]
   }
 }

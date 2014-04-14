@@ -38,5 +38,8 @@ module.exports = {
     }
     var end = Date.now()
     return [end-start, count]
+  },
+  knn: function() {
+    return ["N/A", 0]
   }
 }
