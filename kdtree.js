@@ -36,15 +36,19 @@ proto.serialize = function() {
 
 //Range query
 proto.range = function kdtRangeQuery(lo, hi, visit) {
-  var d = this.dimension
   var n = this.length
+  if(n < 1) {
+    return
+  }
 
   //Check degenerate case
+  var d = this.dimension
   for(var i=0; i<d; ++i) {
     if(hi[i] < lo[i]) {
       return
     }
   }
+
 
   var points = this.points
   var ids = this.ids
@@ -132,8 +136,11 @@ proto.range = function kdtRangeQuery(lo, hi, visit) {
 }
 
 proto.rnn = function(point, radius, visit) {
-  var d = this.dimension
   var n = this.length
+  if(n < 1) {
+    return
+  }
+  var d = this.dimension
   var points = this.points
   var ids = this.ids
 
@@ -277,13 +284,19 @@ proto.rnn = function(point, radius, visit) {
 }
 
 proto.knn = function(point, k) {
-  var d = this.dimension
+  //Check degenerate cases
   var n = this.length
-  var points = this.points
+  if(n < 1) {
+    return
+  }
   var ids = this.ids
   if(n < k) {
-    return Array.prototype.slice.call(this.ids)
+    return Array.prototype.slice.call(this.ids, 0, n)
   }
+
+  var d = this.dimension
+  var points = this.points
+  
   //TODO: Implement this
 }
 
