@@ -47,7 +47,7 @@ function checkTreeInvariants(t, tree, points) {
     dup([tree.dimension], Infinity))
 }
 
-tape("basic constructor", function(t) {
+tape("kdtree-constructor", function(t) {
 
   var emptyTree = createTree([])
   t.equals(emptyTree.length, 0, "check empty tree length")
@@ -125,5 +125,17 @@ tape("kdtree-range", function(t) {
   }
   verifyKDT(rndpoints, rndquery)
 
+  t.end()
+})
+
+tape("kdtree-rnn", function(t) {
+  t.end()
+})
+
+tape("kdtree-knn", function(t) {
+  t.end()
+})
+
+tape("kdtree-serialize", function(t) {
   t.end()
 })

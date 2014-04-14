@@ -49,11 +49,10 @@ proto.range = function kdtRangeQuery(lo, hi, visit) {
     }
   }
 
-
   var points = this.points
   var ids = this.ids
 
-  //Walk tree in level order, skipping subtree which do not intersect range
+  //Walk tree in level order, skipping subtrees which do not intersect range
   var visitRange = ndscratch.malloc([n, 2, d])
   var visitIndex = pool.mallocInt32(n)
   var rangeData = visitRange.data
@@ -144,7 +143,7 @@ proto.rnn = function(point, radius, visit) {
   var points = this.points
   var ids = this.ids
 
-  //Walk tree in level order, skipping subtree which do not intersect range
+  //Walk tree in level order, skipping subtrees which do not intersect sphere
   var visitRange = ndscratch.malloc([n, 2, d])
   var visitIndex = pool.mallocInt32(n)
   var rangeData = visitRange.data
@@ -184,13 +183,15 @@ proto.rnn = function(point, radius, visit) {
     var k = bits.log2(idx+1)%d
     var loidx = visitRange.index(visitTop, 0, 0)
     var hiidx = visitRange.index(visitTop, 1, 0)
+    var loptr = loidx
+    var hiptr = hiidx
     
     //Find distance for left/right subtrees    
     var d2l = 0.0
     var d2h = 0.0
     for(var i=0; i<k; ++i) {
-      var hk = rangeData[hiidx++]
-      var lk = rangeData[loidx++]
+      var hk = rangeData[hiptr++]
+      var lk = rangeData[loptr++]
       var qk = point[i]
       var dd = 0.0
       if(qk < lk) {
@@ -206,8 +207,8 @@ proto.rnn = function(point, radius, visit) {
     //Handle split axis
     var qk = point[k]
     var pk = pointData[pidx+k]
-    var hk = rangeData[hiidx++]
-    var lk = rangeData[loidx++]
+    var hk = rangeData[hiptr++]
+    var lk = rangeData[loptr++]
     if(qk < lk) {
       var dd = lk - qk
       dd *= dd
@@ -226,9 +227,10 @@ proto.rnn = function(point, radius, visit) {
       d2r += ddt
     }
 
+    //Handle rest of cases
     for(var i=k+1; k<d; ++i) {
-      var hk = rangeData[hiidx++]
-      var lk = rangeData[loidx++]
+      var hk = rangeData[hiptr++]
+      var lk = rangeData[loptr++]
       var qk = point[i]
       var dd = 0.0
       if(qk < lk) {
@@ -240,6 +242,7 @@ proto.rnn = function(point, radius, visit) {
       d2l += dd
       d2r += dd
     }
+
 
     if(d2l <= r2) {
       var left = 2 * idx + 1
