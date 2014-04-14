@@ -5,14 +5,14 @@ module.exports.deserialize = deserialzeKDTree
 
 var unpack = require("ndarray-unpack")
 
+var ndarray = require("ndarray")
+var ndselect = require("ndarray-select")
+var pack = require("ndarray-pack")
+var ops = require("ndarray-ops")
+var ndscratch = require("ndarray-scratch")
+var pool = require("typedarray-pool")
 var inorderTree = require("inorder-tree-layout")
 var bits = require("bit-twiddle")
-var ndarray = require("ndarray")
-var pack = require("ndarray-pack")
-var ndselect = require("ndarray-select")
-var ops = require("ndarray-ops")
-var pool = require("typedarray-pool")
-var ndscratch = require("ndarray-scratch")
 
 function KDTree(points, ids, n, d) {
   this.points = points
@@ -135,6 +135,9 @@ proto.range = function kdtRangeQuery(lo, hi, visit) {
 }
 
 proto.rnn = function(point, radius, visit) {
+  if(radius < 0) {
+    return
+  }
   var n = this.length
   if(n < 1) {
     return
@@ -169,7 +172,7 @@ proto.rnn = function(point, radius, visit) {
     //Check if point in sphere
     var d2 = 0.0
     for(var i=0; i<d; ++i) {
-      var dd = point[i] - pointArray[pidx+i]
+      var dd = point[i] - pointData[pidx+i]
       d2 += dd * dd
     }
     if(d2 <= r2) {
@@ -189,9 +192,12 @@ proto.rnn = function(point, radius, visit) {
     //Find distance for left/right subtrees    
     var d2l = 0.0
     var d2h = 0.0
-    for(var i=0; i<k; ++i) {
-      var hk = rangeData[hiptr++]
-      var lk = rangeData[loptr++]
+    for(var i=0; i<d; ++i, ++hiptr, ++loptr) {
+      if(i === k) {
+        continue
+      }
+      var hk = rangeData[hiptr]
+      var lk = rangeData[loptr]
       var qk = point[i]
       var dd = 0.0
       if(qk < lk) {
@@ -201,22 +207,22 @@ proto.rnn = function(point, radius, visit) {
       }
       dd *= dd
       d2l += dd
-      d2r += dd
+      d2h += dd
     }
 
     //Handle split axis
     var qk = point[k]
     var pk = pointData[pidx+k]
-    var hk = rangeData[hiptr++]
-    var lk = rangeData[loptr++]
+    var hk = rangeData[hiidx+k]
+    var lk = rangeData[loidx+k]
     if(qk < lk) {
       var dd = lk - qk
       dd *= dd
       d2l += dd
-      d2r += ddt
+      d2h += dd
     } else if(qk < pk) {
       var dd = pk - qk
-      d2r += dd * dd
+      d2h += dd * dd
     } else if(qk < hk) {
       var dd = pk - qk
       d2l += dd * dd
@@ -224,25 +230,8 @@ proto.rnn = function(point, radius, visit) {
       var dd = hk - qk
       dd *= dd
       d2l += dd
-      d2r += ddt
+      d2h += dd
     }
-
-    //Handle rest of cases
-    for(var i=k+1; k<d; ++i) {
-      var hk = rangeData[hiptr++]
-      var lk = rangeData[loptr++]
-      var qk = point[i]
-      var dd = 0.0
-      if(qk < lk) {
-        dd = lk - qk
-      } else if(qk > hk) {
-        dd = qk - hk
-      }
-      dd *= dd
-      d2l += dd
-      d2r += dd
-    }
-
 
     if(d2l <= r2) {
       var left = 2 * idx + 1
@@ -260,7 +249,7 @@ proto.rnn = function(point, radius, visit) {
         visitCount += 1
       }
     }
-    if(d2r <= r2) {
+    if(d2h <= r2) {
       var right = 2 * (idx + 1)
       if(right < n) {
         visitIndex[visitCount] = right
