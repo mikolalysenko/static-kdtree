@@ -81,11 +81,12 @@ Visit all points contained in the sphere of radius `r` centered at `point`
 
 **Time Complexity** `O(n^(1-1/d) + k)`, where `k` is the number of points in the sphere
 
-#### `kdt.knn(point, k)`
+#### `kdt.knn(point, k[, maxDistance])`
 Returns a list of the k closest points to point in the tree.
 
 * `point` is the point which is being queried
 * `k` is the number of points to query
+* `maxDistance` is an optional parameter which bounds the distance of the returned points. Default is `Infinity`
 
 **Returns** An array of indices of the exact `k` closest points in the tree to the query point.
 
