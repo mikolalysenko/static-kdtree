@@ -112,7 +112,7 @@ Release all resources associated with the kdtree
 
 Here are some preliminary benchmarks:
 
-| Data Structure | [Linear scan](http://en.wikipedia.org/wiki/Brute-force_search) | [Static KDTree](https://github.com/mikolalysenko/static-kdtree) | [Ubilabs kdtree](https://github.com/ubilabs/kd-tree-javascript) | [node-kdtree](https://github.com/justinethier/node-kdtree) | [look-alike](https://github.com/axiomzen/Look-Alike) |
+| Data Structure | [Linear scan](http://en.wikipedia.org/wiki/Brute-force_search) | [static-kdtree](https://github.com/mikolalysenko/static-kdtree) | [Ubilabs kdtree](https://github.com/ubilabs/kd-tree-javascript) | [node-kdtree](https://github.com/justinethier/node-kdtree) | [look-alike](https://github.com/axiomzen/Look-Alike) |
 |:---|---:|---:|---:|---:|---:|
 | Dynamic? | ✓ | ✗ | ✓ | ✓ | ✗ |
 | Works in browser? | ✓ | ✓ | ✓ | ✗ | ✓ |
