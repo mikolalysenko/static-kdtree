@@ -25,5 +25,8 @@ module.exports = {
   },
   rnn: function(points, queries, repeat) {
     return ["N/A", 0]
+  },
+  knn: function() {
+    return ["N/A", 0]
   }
 }

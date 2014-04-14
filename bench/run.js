@@ -6,7 +6,7 @@ var bits = require("bit-twiddle")
 var cases = [
   require("./brute-force.js"),
   require("./static-kdt.js"),
-  require("./ubi-bench.js")
+  require("./ubi-bench.js"),
   require("./node-kdtree.js"),
   require("./look-alike.js")
 ]
