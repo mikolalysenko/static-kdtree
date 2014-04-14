@@ -175,7 +175,6 @@ function createKDTree(points) {
     } else {
       type = "float64"
     }
-
     indexed = ndarray(pool.malloc(n*(d+1)), [n, d+1])
     ops.assign(indexed.hi(n,d), points)
   }
@@ -190,6 +189,9 @@ function createKDTree(points) {
   var arrayData = indexed.data
   var mstep = indexed.stride[1]
 
+  var sel_lex = ndselect.compile(indexed.order, false, indexed.dtype)
+  var sel_cmp = ndselect.compile(indexed.order, true, indexed.dtype)
+
   //Walk tree in level order
   var toVisit = [indexed]
   while(pointer < n) {
@@ -199,13 +201,13 @@ function createKDTree(points) {
     
     //Find median
     if(nn > 2) {
-      var k = bits.log2(pointer)%d
+      var k = bits.log2(pointer+1)%d
       var median
       var n_2 = nn>>>1
       if(k === 0) {
-        median = ndselect(array, n_2)
+        median = sel_lex(array, n_2)
       } else {
-        median = ndselect(array, n_2, function(a,b) {
+        median = sel_cmp(array, n_2, function(a,b) {
           return a.get(k) - b.get(k)
         })
       }
