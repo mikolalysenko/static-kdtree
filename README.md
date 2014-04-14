@@ -11,6 +11,15 @@ Note that kd-trees are not the best data structure in all circumstances. If you 
 |   Medium  | [kd-tree](http://en.wikipedia.org/wiki/K-d_tree)                  | O(n^(1-1/d)) | O(n) |
 |   Big     | [Array](http://en.wikipedia.org/wiki/Array_data_structure)                    | O(n)       | O(n) |
 
+And for nearest neighbor searching, here is a survey of some different options:
+
+| Dimension | Preferred Data Structure | Complexity | Size |
+|-----------|--------------------------|------------|------|
+|     1     | [Binary search tree](http://en.wikipedia.org/wiki/Binary_search_tree)       |  O(log(n)) | O(n) |
+|    2    | [Voronoi diagram](http://en.wikipedia.org/wiki/Voronoi_diagram) | O(log(n)) | O(n) |
+|   Medium  | [kd-tree](http://en.wikipedia.org/wiki/K-d_tree)                  | O(n^(1-1/d)) | O(n) |
+|   Big     | [Array](http://en.wikipedia.org/wiki/Array_data_structure)                    | O(n)       | O(n) |
+
 This module works both in node.js and with [browserify](http://browserify.org/).
 
 **THIS MODULE IS A WORK IN PROGRESS**
@@ -133,7 +142,7 @@ Here are some preliminary benchmarks:
 
 ### Some thoughts:
 
-To me at least, these results are pretty shocking. None of the kdtree data structures on npm outperform a simple linear scan, which makes them worse than useless. In fact, up to around 1000 points or so, a linear scan will be faster than this module.  However, for sufficiently *large* data sets using a kdtree can make sense.
+To me at least, these results are pretty shocking. None of the kdtree data structures on npm outperform a simple linear scan, which makes them worse than useless (even node-kdtree, which uses native C++ bindings). Even for this module - which is currently the only one to beat the simple brute force algorithm -  a linear scan will be faster up to around 1000 points or so.  However, for sufficiently *large* data sets using a kdtree can make sense especially for interactive applications.
 
 # Credits
 (c) 2014 Mikola Lysenko. MIT License
