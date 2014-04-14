@@ -10,6 +10,9 @@ This library works both in node.js and with [browserify](http://browserify.org/)
 # Example
 
 ```javascript
+var createKDTree = require("static-kdtree")
+
+
 ```
 
 # Install
@@ -68,15 +71,6 @@ Visit all points contained in the sphere of radius `r` centered at `point`
 **Returns** The last returned value of `visit`
 
 **Time Complexity** `O(n^(1-1/d) + k)`, where `k` is the number of points in the sphere
-
-#### `kdt.nn(point)`
-Returns the index of the closest point in the tree to the given query query point.
-
-* `point` is the query point
-
-**Returns** The index of the closest point to `point`, or `-1` if the tree is empty.
-
-**Time Complexity** `O(n)`, but may be faster if the points in the tree are uniformly distributed
 
 #### `kdt.knn(point, k)`
 Returns a list of the k closest points to point in the tree.

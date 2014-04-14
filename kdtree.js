@@ -4,6 +4,7 @@ module.exports = createKDTree
 
 var unpack = require("ndarray-unpack")
 
+var bits = require("bit-twiddle")
 var ndarray = require("ndarray")
 var pack = require("ndarray-pack")
 var ndselect = require("ndarray-select")
@@ -53,15 +54,6 @@ proto.range = function kdtRangeQuery(lo, hi, visit) {
   while(visitTop < visitCount) {
     var idx = visitIndex[2*visitTop]
     var k = visitIndex[2*visitTop+1]
-
-    /*
-    console.log("visitQ=", unpack(visitRange.hi(visitCount)))
-    console.log("range, idx=", idx, "k=", k, 
-      "lo=", unpack(visitRange.pick(visitTop, 0)), 
-      "hi=", unpack(visitRange.pick(visitTop, 1)), 
-      "point=", unpack(points.pick(idx)))
-    */
-
     var loidx = visitRange.index(visitTop, 0, 0)
     var hiidx = visitRange.index(visitTop, 1, 0)
     var pidx = points.index(idx, 0)
@@ -134,16 +126,6 @@ proto.rnn = function(point, radius) {
   //TODO: Implement this
 }
 
-proto.nn = function(point) {
-  var n = this.length
-  if(n < 1) {
-    return -1
-  }
-  //TODO: Special case, optimize this
-  var r = this.knn(point, 1)
-  return r[0]
-}
-
 proto.knn = function(point, k) {
   var d = this.dimension
   var n = this.length
@@ -204,40 +186,66 @@ function createKDTree(points) {
   var pointArray = ndscratch.malloc([n, d], points.dtype)
   var indexArray = pool.mallocInt32(n)
   var pointer = 0
+  var pointData = pointArray.data
+  var arrayData = indexed.data
+  var mstep = indexed.stride[1]
 
   //Walk tree in level order
-  var toVisit = new Array(n)
-  var eoq = 1
-  toVisit[0] = [indexed, 0]
+  var toVisit = [indexed]
   while(pointer < n) {
-    var head = toVisit[pointer]
-    var array = head[0]
-    var k = head[1]
-    var nn = array.shape[0]
+    var head = toVisit.shift()
+    var array = head
+    var nn = array.shape[0]|0
     
     //Find median
-    var median, n_2
-    if(nn > 1) {
-      n_2 = nn>>>1
-      median = ndselect(array, n_2, function(a,b) {
-        return a.get(k) - b.get(k)
-      })
-    } else {
-      median = array.pick(0)
-    }
-
-    //Copy into new array
-    ops.assign(pointArray.pick(pointer), median.hi(d))
-    indexArray[pointer] = median.get(d)
-    pointer += 1
-
-    //Queue new items
-    if(nn > 1) {
-      k = (k+1) % d
-      toVisit[eoq++] = [array.hi(n_2), k]
-      if(nn > 2) {
-        toVisit[eoq++] = [array.lo(n_2+1), k]
+    if(nn > 2) {
+      var k = bits.log2(pointer)%d
+      var median
+      var n_2 = nn>>>1
+      if(k === 0) {
+        median = ndselect(array, n_2)
+      } else {
+        median = ndselect(array, n_2, function(a,b) {
+          return a.get(k) - b.get(k)
+        })
       }
+
+      //Copy into new array
+      var pptr = pointArray.index(pointer, 0)
+      var mptr = median.offset
+      for(var i=0; i<d; ++i) {
+        pointData[pptr++] = arrayData[mptr]
+        mptr += mstep
+      }
+      indexArray[pointer] = arrayData[mptr]
+      pointer += 1
+
+      //Queue new items
+      toVisit.push(array.hi(n_2))
+      if(nn > 2) {
+        toVisit.push(array.lo(n_2+1))
+      }
+    } else if(nn === 2) {
+      for(var j=0; j<2; ++j) {
+        var pptr = pointArray.index(pointer, 0)
+        var mptr = array.index(i,0)
+        for(var i=0; i<d; ++i) {
+          pointArray[pptr++] = arrayData[mptr]
+          mptr += mstep
+        }
+        indexArray[pointer] = arrayData[mptr]
+        pointer += 1
+      }
+    } else {
+      //Copy into new array
+      var mptr = array.offset
+      var pptr = pointArray.index(pointer, 0)
+      for(var i=0; i<d; ++i) {
+        pointData[pptr+i] = arrayData[mptr]
+        mptr += mstep
+      }
+      indexArray[pointer] = arrayData[mptr]
+      pointer += 1
     }
   }
 
