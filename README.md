@@ -20,6 +20,8 @@ And for nearest neighbor searching, here is a survey of some different options:
 |   Medium  | [kd-tree](http://en.wikipedia.org/wiki/K-d_tree)                  | O(n^(1-1/d)) | O(n) |
 |   Big     | [Array](http://en.wikipedia.org/wiki/Array_data_structure)                    | O(n)       | O(n) |
 
+It is also worth mentioning that for approximate nearest neighbor queries or queries with a fixed size radius, grids and locality sensitive hashing are strictly better options.
+
 This module works both in node.js and with [browserify](http://browserify.org/).
 
 **THIS MODULE IS A WORK IN PROGRESS**
