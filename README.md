@@ -2,7 +2,7 @@ static-kdtree
 =============
 [kd-trees](http://en.wikipedia.org/wiki/K-d_tree) are a [compact](http://en.wikipedia.org/wiki/Succinct_data_structure) data structure for answering orthogonal range and nearest neighbor queries on higher dimensional point data in linear time.  While they are not as efficient at answering orthogonal range queries as [range trees](http://en.wikipedia.org/wiki/Range_tree) - especially in low dimensions - kdtrees consume exponentially less space, support k-nearest neighbor queries and are relatively cheap to construct. This makes them useful in small to medium dimensions for achieving a modest speed up over a linear scan.
 
-Note that kd-trees are not the best data structure in all circumstances. If you want to do range searching, here is a chart to help you select the best data structure for a given dimension:
+Note that kd-trees are not the best data structure in all circumstances. If you want to do range searching, here is a chart to help you select one which is appropriate for a given dimension:
 
 | Dimension | Preferred Data Structure | Complexity | Size |
 |-----------|--------------------------|------------|------|
