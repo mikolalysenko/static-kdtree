@@ -2,6 +2,50 @@
 
 var createTree = require("../kdtree")
 var tape = require("tape")
+var dup = require("dup")
+var iota = require("iota-array")
+var unpack = require("ndarray-unpack")
+
+function checkTreeInvariants(t, tree, points) {
+  t.equals(tree.length, points.length, "checking point count")
+  t.equals(tree.dimension, points[0].length, "checking dimension")
+  t.equals(tree.points.shape[0], points.length)
+  t.equals(tree.points.shape[1], points[0].length)
+
+  console.log(unpack(tree.points))
+  console.log([].slice.call(tree.ids, 0, tree.length))
+
+  var ids = [].slice.call(tree.ids, 0, tree.length)
+  ids.sort(function(a,b) { return a-b })
+  t.same(ids, iota(tree.length), "checking ids consistent")
+
+  var d = tree.dimension
+
+  //Check tree satisifies kdtree invariants
+  function checkNode(idx, k, lo, hi) {
+    if(idx >= tree.length) {
+      return
+    }
+    t.same(unpack(tree.points.pick(idx)), points[tree.ids[idx]], "check ids consistent: " + points[tree.ids[idx]])
+    for(var i=0; i<tree.dimension; ++i) {
+      t.ok(lo[i] <= tree.points.get(idx, i), "check lower bound " + i + " on pt " + idx + "/" + tree.ids[idx] + " - " + lo[i])
+      t.ok(tree.points.get(idx, i) <= hi[i], "check upper bound " + i + " on pt " + idx + "/" + tree.ids[idx] + " - " + hi[i])
+    }
+
+    var left = 2 * idx + 1
+    var hi2 = hi.slice()
+    hi2[k] = Math.min(hi2[k], tree.points.get(idx, k))
+    checkNode(left, (k+1)%d, lo, hi2)
+
+    var right = 2 * (idx + 1)
+    var lo2 = lo.slice()
+    lo2[k] = Math.max(lo2[k], tree.points.get(idx, k))
+    checkNode(right, (k+1)%d, lo2, hi)
+  }
+  checkNode(0, 0, 
+    dup([tree.dimension], -Infinity), 
+    dup([tree.dimension], Infinity))
+}
 
 tape("basic constructor", function(t) {
 
@@ -16,8 +60,7 @@ tape("kdtree-range", function(t) {
 
   function verifyKDT(points, queries) {
     var tree = createTree(points)
-    t.equals(tree.length, points.length, "checking point count")
-    t.equals(tree.dimension, points[0].length, "checking dimension")
+    checkTreeInvariants(t, tree, points)
     for(var i=0; i<queries.length; ++i) {
       var result = []
       tree.range(queries[i][0], queries[i][1], function(idx) {
@@ -56,7 +99,8 @@ tape("kdtree-range", function(t) {
     ], [
       [[-100], [0]],
       [[0], [2.5]],
-      [[0], [10]]
+      [[0], [10]],
+      [[3], [5]]
     ])
 
   verifyKDT([
@@ -69,15 +113,14 @@ tape("kdtree-range", function(t) {
     ])
 
   //Random blob of points in 3D
-  var rndpoints = new Array(100)
-  for(var i=0; i<100; ++i) {
-    rndpoints[i] = [ Math.random(), Math.random(), Math.random() ]
-  }
+  var rndpoints = iota(20).map(function() {
+    return [ Math.random() ]
+  })
   var rndquery = new Array(20)
   for(var i=0; i<200; ++i) {
     rndquery[i] = [ 
-      [Math.random(), Math.random(), Math.random()],
-      [Math.random(), Math.random(), Math.random()]
+      [Math.random()],
+      [Math.random()]
     ]
   }
   verifyKDT(rndpoints, rndquery)

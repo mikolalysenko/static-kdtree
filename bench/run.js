@@ -8,7 +8,7 @@ var cases = [
 
 var columns = []
 
-var NVALUES = [100, 1000, 100000]
+var NVALUES = [100, 1000, 10000, 100000]
 var POINTS = NVALUES.map(function(n) {
   var points = new Array(n)
   for(var i=0; i<n; ++i) {
@@ -26,14 +26,18 @@ var PREPROCESS_ITER_COUNT = 400
 
 var firstColumn = [
   "Data Structure",
-  "Dynamic?",
-  "Construction: (n=" + NVALUES[0] + ",k=2)",
-  "Construction: (n=" + NVALUES[1] + ",k=2)",
-  "Construction: (n=" + NVALUES[2] + ",k=2)",
-  "Range: (n=" + NVALUES[0] + ",k=2)",
-  "Range: (n=" + NVALUES[1] + ",k=2)",
-  "Range: (n=" + NVALUES[2] + ",k=2)"
-]
+  ":---",
+  "Dynamic?"]
+
+firstColumn.push.apply(firstColumn,
+  NVALUES.map(function(v) {
+    return "Construction: (n=" + v + ",d=2)"
+  }))
+
+firstColumn.push.apply(firstColumn, 
+  NVALUES.map(function(v) {
+    return "Range: (n=" + v + ",d=2)"
+  }))
 
 columns.push(firstColumn)
 
@@ -42,9 +46,10 @@ for(var k=0; k<cases.length; ++k) {
   console.log("testing: ", c.name)
   var column = [
     "[" + c.name + "](" + c.url + ")",
+    "---:",
     (c.dynamic ? "✓" : "✗")
   ]
-  for(var i=0; i<3; ++i) {
+  for(var i=0; i<NVALUES.length; ++i) {
     console.log("preprocess: ", POINTS[i].length)
     var result = c.preprocess(POINTS[i], PREPROCESS_ITER_COUNT) 
     if(typeof result === "number") {
@@ -54,7 +59,7 @@ for(var k=0; k<cases.length; ++k) {
     }
     console.log("t=", result/PREPROCESS_ITER_COUNT)
   }
-  for(var i=0; i<3; ++i) {
+  for(var i=0; i<NVALUES.length; ++i) {
     var nn = Math.ceil(RANGE_ITER_COUNT / POINTS[i].length)|0
     console.log("range: ", POINTS[i].length, nn * QUERIES.length)
     var result = c.range(POINTS[i], QUERIES, nn)

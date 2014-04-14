@@ -1,6 +1,6 @@
 static-kdtree
 =============
-[kd-trees](http://en.wikipedia.org/wiki/K-d_tree) are a [compact](http://en.wikipedia.org/wiki/Succinct_data_structure) data structure for answering orthogonal range and nearest neighbor queries on higher dimensional point data in linear time.  While they are not as efficient at answering orthogonal range queries as [range trees](http://en.wikipedia.org/wiki/Range_tree), especially in low dimensions, kdtrees consume exponentially less space and support approximate nearest neighbor queries.
+[kd-trees](http://en.wikipedia.org/wiki/K-d_tree) are a [compact](http://en.wikipedia.org/wiki/Succinct_data_structure) data structure for answering orthogonal range and nearest neighbor queries on higher dimensional point data in linear time.  While they are not as efficient at answering orthogonal range queries as [range trees](http://en.wikipedia.org/wiki/Range_tree), especially in low dimensions, kdtrees consume exponentially less space and support k-nearest neighbor queries.
 
 This library works both in node.js and with [browserify](http://browserify.org/).
 
@@ -39,6 +39,15 @@ Creates a kdtree from the given collection of points.
 **Returns** A kdtree data structure
 
 **Time Complexity** This operation takes O(n log(n))
+
+### `var kdt = createKDTree.deserialze(data)`
+Restores a serialized kdtree.
+
+* `data` is a JavaScript object as produced by calling `kdt.serialize`
+
+**Returns** A kdtree data structure equivalent to the one which was serialized.
+
+**Time Complexity** `O(n)`
 
 ## Properties
 
@@ -81,6 +90,9 @@ Returns a list of the k closest points to point in the tree.
 **Returns** An array of indices of the exact `k` closest points in the tree to the query point.
 
 **Time Complexity** `O((n + k) log(k))`, but may be faster if the points in the tree are uniformly distributed
+
+#### `kdt.serialize()`
+Returns a serializable JSON object encoding the state of the kdtree
 
 #### `kdt.dispose()`
 Release all resources associated with the kdtree

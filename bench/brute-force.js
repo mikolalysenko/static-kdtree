@@ -3,7 +3,7 @@ module.exports = {
   url: "http://en.wikipedia.org/wiki/Brute-force_search",
   dynamic: true,
   preprocess: function(points, repeat) {
-    return "N/A"
+    return 0
   },
   range: function(points, queries, repeat) {
     var m = points.length
