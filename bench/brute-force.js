@@ -2,6 +2,7 @@ module.exports = {
   name: "Linear scan",
   url: "http://en.wikipedia.org/wiki/Brute-force_search",
   dynamic: true,
+  pureJS: true,
   preprocess: function(points, repeat) {
     return 0
   },
@@ -27,5 +28,35 @@ module.exports = {
     }
     var end = +Date.now()
     return [end - start, count]
-  } 
+  },
+  rnn: function(points, queries, repeat) {
+    var m = points.length
+    var d = points[0].length
+    var n = queries.length
+    var count = 0
+    var start = +Date.now()
+    for(var ll=0; ll<repeat; ++ll) {
+      //For comparing to other libraries, build a list here instead of just counting
+      var list = []
+      for(var i=0; i<n; ++i) {
+        var q = queries[i]
+        var p = q[0]
+        var r2 = q[1] * q[1]
+        for(var j=0; j<m; ++j) {
+          var x = points[j]
+          var d2 = 0.0
+          for(var k=0; k<d; ++k) {
+            var dd = p[k] - x[k]
+            d2 += dd*dd
+          }
+          if(d2 <= r2) {
+            list.push(j)
+          }
+        }
+      }
+      count += list.length
+    }
+    var end = +Date.now()
+    return [end - start, count]
+  }
 }

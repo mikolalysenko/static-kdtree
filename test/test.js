@@ -43,6 +43,7 @@ function checkTreeInvariants(t, tree, points) {
     dup([tree.dimension], -Infinity), 
     dup([tree.dimension], Infinity))
 }
+/*
 
 tape("kdtree-constructor", function(t) {
 
@@ -124,6 +125,7 @@ tape("kdtree-range", function(t) {
 
   t.end()
 })
+*/
 
 tape("kdtree-rnn", function(t) {
   function verifyKDT(points, queries) {
@@ -170,7 +172,9 @@ tape("kdtree-rnn", function(t) {
     [5],
     [6]
     ], [
-      [[0], 3]
+      [[-1], 2],
+      [[0], 3],
+      [[3], 1]
     ])
 
 

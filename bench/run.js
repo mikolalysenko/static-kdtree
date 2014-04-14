@@ -1,9 +1,16 @@
 "use strict"
 
+var dup = require("dup")
+var bits = require("bit-twiddle")
+
 var cases = [
   //require("./brute-force.js"),
-  require("./static-kdt.js"),
-  require("./ubi-bench.js")
+  require("./static-kdt.js")
+/*
+  require("./ubi-bench.js"),
+  require("./node-kdtree.js"),
+  require("./look-alike.js")
+*/
 ]
 
 var columns = []
@@ -21,22 +28,31 @@ for(var i=0; i<100; ++i) {
   QUERIES.push([ 
     [Math.random(), Math.random()], [Math.random(), Math.random()] ])
 }
-var RANGE_ITER_COUNT = 100000
-var PREPROCESS_ITER_COUNT = 400
+var BALL_QUERIES = dup(100).map(function() {
+  return [ dup(2).map(Math.random), Math.random()*Math.random()*Math.random() ]
+})
+
+var RANGE_ITER_COUNT = 1000000
+var RNN_ITER_COUNT = 1000000
+var PREPROCESS_ITER_COUNT = 1000000
 
 var firstColumn = [
   "Data Structure",
   ":---",
-  "Dynamic?"]
+  "Dynamic?",
+  "Works in browser?"]
 
 firstColumn.push.apply(firstColumn,
   NVALUES.map(function(v) {
     return "Construction: (n=" + v + ",d=2)"
   }))
-
 firstColumn.push.apply(firstColumn, 
   NVALUES.map(function(v) {
     return "Range: (n=" + v + ",d=2)"
+  }))
+firstColumn.push.apply(firstColumn,
+  NVALUES.map(function(v) {
+    return "rNN: (n=" + v + ",d=2)"
   }))
 
 columns.push(firstColumn)
@@ -47,28 +63,43 @@ for(var k=0; k<cases.length; ++k) {
   var column = [
     "[" + c.name + "](" + c.url + ")",
     "---:",
-    (c.dynamic ? "✓" : "✗")
+    (c.dynamic ? "✓" : "✗"),
+    (c.pureJS ? "✓" : "✗")
   ]
+  /*
   for(var i=0; i<NVALUES.length; ++i) {
-    console.log("preprocess: ", POINTS[i].length)
-    var result = c.preprocess(POINTS[i], PREPROCESS_ITER_COUNT) 
+    var nn = (PREPROCESS_ITER_COUNT / POINTS[i].length)|0
+    console.log("preprocess: ", POINTS[i].length, nn)
+    var result = c.preprocess(POINTS[i], nn) 
     if(typeof result === "number") {
-      column.push((result/PREPROCESS_ITER_COUNT) + "ms")
+      column.push((result/nn) + "ms")
     } else {
       column.push(result)
     }
-    console.log("t=", result/PREPROCESS_ITER_COUNT)
+    console.log(result)
   }
   for(var i=0; i<NVALUES.length; ++i) {
     var nn = Math.ceil(RANGE_ITER_COUNT / POINTS[i].length)|0
-    console.log("range: ", POINTS[i].length, nn * QUERIES.length)
+    console.log("range: ", POINTS[i].length, nn)
     var result = c.range(POINTS[i], QUERIES, nn)
     if(typeof result[0] === "number") {
       column.push((result[0] / (nn * QUERIES.length)) + "ms")
     } else {
       column.push(result[0])
     }
-    console.log("t=", result)
+    console.log(result)
+  }
+  */
+  for(var i=0; i<NVALUES.length; ++i) {
+    var nn = Math.ceil(RNN_ITER_COUNT / POINTS[i].length)|0
+    console.log("rnn:", POINTS[i].length, nn)
+    var result = c.rnn(POINTS[i], BALL_QUERIES, nn)
+    if(typeof result[0] === "number") {
+      column.push((result[0] / (nn*BALL_QUERIES.length)) + "ms")
+    } else {
+      column.push(result[0])
+    }
+    console.log(result)
   }
   columns.push(column)
 }

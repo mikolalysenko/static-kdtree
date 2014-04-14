@@ -160,20 +160,23 @@ proto.rnn = function(point, radius, visit) {
   visitIndex[0] = 0
   visitIndex[1] = 0
   for(var i=0; i<d; ++i) {
-    visitRange.set(0, i, -Infinity)
-    visitRange.set(1, i,  Infinity)
+    visitRange.set(0, 0, i, -Infinity)
+    visitRange.set(0, 1, i,  Infinity)
   }
+
+  console.log("search:", point, radius)
 
   //Walk over queue
   while(visitTop < visitCount) {
     var idx = visitIndex[visitTop]
     var pidx = points.index(idx, 0)
 
+    console.log("visit:", unpack(visitRange.pick(visitTop)), idx, unpack(points.pick(idx)))
+
     //Check if point in sphere
     var d2 = 0.0
     for(var i=0; i<d; ++i) {
-      var dd = point[i] - pointData[pidx+i]
-      d2 += dd * dd
+      d2 += Math.pow(point[i] - pointData[pidx+i], 2)
     }
     if(d2 <= r2) {
       retval = visit(ids[idx])
@@ -192,22 +195,19 @@ proto.rnn = function(point, radius, visit) {
     //Find distance for left/right subtrees    
     var d2l = 0.0
     var d2h = 0.0
-    for(var i=0; i<d; ++i, ++hiptr, ++loptr) {
-      if(i === k) {
-        continue
-      }
-      var hk = rangeData[hiptr]
-      var lk = rangeData[loptr]
+    for(var i=0; i<d; ++i) {
+      var hk = rangeData[hiptr++]
+      var lk = rangeData[loptr++]
       var qk = point[i]
-      var dd = 0.0
       if(qk < lk) {
-        dd = lk - qk
+        var dd = Math.pow(lk - qk, 2)
+        d2l += dd
+        d2h += dd
       } else if(qk > hk) {
-        dd = qk - hk
+        var dd = Math.pow(hk - qk, 2)
+        d2l += dd
+        d2h += dd
       }
-      dd *= dd
-      d2l += dd
-      d2h += dd
     }
 
     //Handle split axis
@@ -215,23 +215,13 @@ proto.rnn = function(point, radius, visit) {
     var pk = pointData[pidx+k]
     var hk = rangeData[hiidx+k]
     var lk = rangeData[loidx+k]
-    if(qk < lk) {
-      var dd = lk - qk
-      dd *= dd
-      d2l += dd
-      d2h += dd
-    } else if(qk < pk) {
-      var dd = pk - qk
-      d2h += dd * dd
-    } else if(qk < hk) {
-      var dd = pk - qk
-      d2l += dd * dd
-    } else {
-      var dd = hk - qk
-      dd *= dd
-      d2l += dd
-      d2h += dd
+    if(lk < qk && qk < pk) {
+      d2h += Math.pow(pk - qk, 2)
+    } else if(pk < qk && qk < hk) {
+      d2l += Math.pow(pk - qk, 2)
     }
+
+    console.log("d2l=", Math.sqrt(d2l), "d2h=", Math.sqrt(d2h))
 
     if(d2l <= r2) {
       var left = 2 * idx + 1
@@ -245,9 +235,11 @@ proto.rnn = function(point, radius, visit) {
         for(var i=0; i<d; ++i) {
           rangeData[z+i] = rangeData[hiidx+i]
         }
-        rangeData[z+k] = Math.min(hk, pk)
+        rangeData[z+k] = pk
         visitCount += 1
       }
+    } else {
+      console.log("skip-left", 2*idx+1)
     }
     if(d2h <= r2) {
       var right = 2 * (idx + 1)
@@ -261,9 +253,11 @@ proto.rnn = function(point, radius, visit) {
         for(var i=0; i<d; ++i) {
           rangeData[z+i] = rangeData[hiidx+i]
         }
-        rangeData[y+k] = Math.max(lk, pk)
+        rangeData[y+k] = pk
         visitCount += 1
       }
+    } else {
+      console.log("skip-right", 2*(idx+1))
     }
 
     //Increment pointer

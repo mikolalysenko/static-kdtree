@@ -100,7 +100,7 @@ Release all resources associated with the kdtree
 
 **Time Complexity** `O(1)`
 
-# Comparison to other kdtree libraries
+# Comparisons
 
 **TODO**
 
