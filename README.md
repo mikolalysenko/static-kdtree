@@ -1,17 +1,17 @@
 static-kdtree
 =============
-[kd-trees](http://en.wikipedia.org/wiki/K-d_tree) are a [compact](http://en.wikipedia.org/wiki/Succinct_data_structure) data structure for answering orthogonal range and nearest neighbor queries on higher dimensional point data in linear time.  While they are not as efficient at answering orthogonal range queries as [range trees](http://en.wikipedia.org/wiki/Range_tree) - especially in low dimensions - kdtrees consume exponentially less space and support k-nearest neighbor queries. This makes them useful in medium dimensions for achieving a modest speed up over a linear scan.
+[kd-trees](http://en.wikipedia.org/wiki/K-d_tree) are a [compact](http://en.wikipedia.org/wiki/Succinct_data_structure) data structure for answering orthogonal range and nearest neighbor queries on higher dimensional point data in linear time.  While they are not as efficient at answering orthogonal range queries as [range trees](http://en.wikipedia.org/wiki/Range_tree) - especially in low dimensions - kdtrees consume exponentially less space, support k-nearest neighbor queries and are relatively cheap to construct. This makes them useful in small to medium dimensions for achieving a modest speed up over a linear scan.
 
-This library works both in node.js and with [browserify](http://browserify.org/).
-
-If you want to do range searching, here is a chart to help you select the best data structure for a given dimension:
+Note that kd-trees are not the best data structure in all circumstances. If you want to do range searching, here is a chart to help you select the best data structure for a given dimension:
 
 | Dimension | Preferred Data Structure | Complexity | Size |
 |-----------|--------------------------|------------|------|
-|     1     | Binary search tree       |  O(log(n)) | O(n) |
-|    2-3    | Range tree               | O(log^(d-1)(n)) | O(n log^d (n)) |
-|   Medium  | kd-tree                  | O(n^(1-1/d)) | O(n) |
-|   Big     | Array                    | O(n)       | O(n) |
+|     1     | [Binary search tree](http://en.wikipedia.org/wiki/Binary_search_tree)       |  O(log(n)) | O(n) |
+|    2-3    | [Range tree](http://en.wikipedia.org/wiki/Range_tree)               | O(log^(d-1)(n)) | O(n log^d (n)) |
+|   Medium  | [kd-tree](http://en.wikipedia.org/wiki/K-d_tree)                  | O(n^(1-1/d)) | O(n) |
+|   Big     | [Array](http://en.wikipedia.org/wiki/Array_data_structure)                    | O(n)       | O(n) |
+
+This module works both in node.js and with [browserify](http://browserify.org/).
 
 **THIS MODULE IS A WORK IN PROGRESS**
 
