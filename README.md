@@ -131,6 +131,9 @@ Here are some preliminary benchmarks:
 
 **THESE NUMBERS ARE NOT YET FINAL**
 
+### Some thoughts:
+
+To me at least, these results are pretty shocking. None of the kdtree data structures on npm outperform a simple linear scan, which makes them worse than useless. In fact, up to around 1000 points or so, a linear scan will be faster than this module.  However, for sufficiently *large* data sets using a kdtree can make sense.
 
 # Credits
 (c) 2014 Mikola Lysenko. MIT License
