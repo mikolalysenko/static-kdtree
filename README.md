@@ -20,7 +20,7 @@ And for nearest neighbor searching, here is a survey of some different options:
 |   Medium  | [kd-tree](http://en.wikipedia.org/wiki/K-d_tree)                  | O(n^(1-1/d)) | O(n) |
 |   Big     | [Array](http://en.wikipedia.org/wiki/Array_data_structure)                    | O(n)       | O(n) |
 
-It is also worth mentioning that for approximate nearest neighbor queries or queries with a fixed size radius, [grids](http://en.wikipedia.org/wiki/Regular_grid) and [locality sensitive hashing](http://en.wikipedia.org/wiki/Locality_sensitive_hashing) are strictly better options.
+It is also worth mentioning that for approximate nearest neighbor queries or queries with a fixed size radius, [grids](http://en.wikipedia.org/wiki/Regular_grid) and [locality sensitive hashing](http://en.wikipedia.org/wiki/Locality_sensitive_hashing) are strictly better options.  In these charts the transition between "Medium" and "Big" depends on how many points there are in the data structure.  As the number of points grows larger, the dimension at which kdtrees become practical goes up.
 
 This module works both in node.js and with [browserify](http://browserify.org/).
 
