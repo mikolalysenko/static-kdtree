@@ -1,7 +1,7 @@
 var createKDT = require("../kdtree")
 
 module.exports = {
-  name: "Static KDTree",
+  name: "static-kdtree",
   url: "https://github.com/mikolalysenko/static-kdtree",
   dynamic: false,
   pureJS: true,
@@ -47,5 +47,8 @@ module.exports = {
     var end = Date.now()
     tree.dispose()
     return [end-start, count]
+  },
+  knn: function() {
+    return ["N/A", 0]
   }
 }

@@ -62,7 +62,6 @@ proto.range = function kdtRangeQuery(lo, hi, visit) {
   var retval
 
   visitIndex[0] = 0
-  visitIndex[1] = 0
   pack(lo, visitRange.pick(0,0))
   pack(hi, visitRange.pick(0,1))
   
@@ -147,9 +146,9 @@ proto.rnn = function(point, radius, visit) {
   var ids = this.ids
 
   //Walk tree in level order, skipping subtrees which do not intersect sphere
-  var visitRange = ndscratch.malloc([n, 2, d])
+  var visitDistance = ndscratch.malloc([n, d])
   var visitIndex = pool.mallocInt32(n)
-  var rangeData = visitRange.data
+  var distanceData = visitDistance.data
   var pointData = points.data
   var visitCount = 1
   var visitTop = 0
@@ -158,20 +157,14 @@ proto.rnn = function(point, radius, visit) {
 
   //Initialize top of queue
   visitIndex[0] = 0
-  visitIndex[1] = 0
   for(var i=0; i<d; ++i) {
-    visitRange.set(0, 0, i, -Infinity)
-    visitRange.set(0, 1, i,  Infinity)
+    visitDistance.set(0, i, 0)
   }
-
-  console.log("search:", point, radius)
 
   //Walk over queue
   while(visitTop < visitCount) {
     var idx = visitIndex[visitTop]
     var pidx = points.index(idx, 0)
-
-    console.log("visit:", unpack(visitRange.pick(visitTop)), idx, unpack(points.pick(idx)))
 
     //Check if point in sphere
     var d2 = 0.0
@@ -187,84 +180,59 @@ proto.rnn = function(point, radius, visit) {
 
     //Visit children
     var k = bits.log2(idx+1)%d
-    var loidx = visitRange.index(visitTop, 0, 0)
-    var hiidx = visitRange.index(visitTop, 1, 0)
-    var loptr = loidx
-    var hiptr = hiidx
-    
-    //Find distance for left/right subtrees    
-    var d2l = 0.0
-    var d2h = 0.0
+    var ds = 0.0
+    var didx = visitDistance.index(visitTop, 0)
     for(var i=0; i<d; ++i) {
-      var hk = rangeData[hiptr++]
-      var lk = rangeData[loptr++]
-      var qk = point[i]
-      if(qk < lk) {
-        var dd = Math.pow(lk - qk, 2)
-        d2l += dd
-        d2h += dd
-      } else if(qk > hk) {
-        var dd = Math.pow(hk - qk, 2)
-        d2l += dd
-        d2h += dd
+      if(i !== k) {
+        ds += distanceData[didx + i]
       }
     }
 
     //Handle split axis
     var qk = point[k]
     var pk = pointData[pidx+k]
-    var hk = rangeData[hiidx+k]
-    var lk = rangeData[loidx+k]
-    if(lk < qk && qk < pk) {
-      d2h += Math.pow(pk - qk, 2)
-    } else if(pk < qk && qk < hk) {
-      d2l += Math.pow(pk - qk, 2)
+    var dk = distanceData[didx+k]
+    var lk = dk
+    var hk = dk
+    if(qk < pk) {
+      hk = Math.max(dk, Math.pow(pk - qk, 2))
+    } else {
+      lk = Math.max(dk, Math.pow(pk - qk, 2))
     }
 
-    console.log("d2l=", Math.sqrt(d2l), "d2h=", Math.sqrt(d2h))
+    var d2l = lk + ds
+    var d2h = hk + ds
 
     if(d2l <= r2) {
       var left = 2 * idx + 1
       if(left < n) {
         visitIndex[visitCount] = left
-        var y = visitRange.index(visitCount, 0, 0)
+        var y = visitDistance.index(visitCount, 0)
         for(var i=0; i<d; ++i) {
-          rangeData[y+i] = rangeData[loidx+i]
+          distanceData[y+i] = distanceData[didx+i]
         }
-        var z = visitRange.index(visitCount, 1, 0)
-        for(var i=0; i<d; ++i) {
-          rangeData[z+i] = rangeData[hiidx+i]
-        }
-        rangeData[z+k] = pk
+        distanceData[y+k] = lk
         visitCount += 1
       }
-    } else {
-      console.log("skip-left", 2*idx+1)
     }
     if(d2h <= r2) {
       var right = 2 * (idx + 1)
       if(right < n) {
         visitIndex[visitCount] = right
-        var y = visitRange.index(visitCount, 0, 0)
+        var y = visitDistance.index(visitCount, 0)
         for(var i=0; i<d; ++i) {
-          rangeData[y+i] = rangeData[loidx+i]
+          distanceData[y+i] = distanceData[didx+i]
         }
-        var z = visitRange.index(visitCount, 1, 0)
-        for(var i=0; i<d; ++i) {
-          rangeData[z+i] = rangeData[hiidx+i]
-        }
-        rangeData[y+k] = pk
+        distanceData[y+k] = hk
         visitCount += 1
       }
-    } else {
-      console.log("skip-right", 2*(idx+1))
     }
 
     //Increment pointer
     visitTop += 1
   }
 
-  ndscratch.free(visitRange)
+  ndscratch.free(visitDistance)
   pool.free(visitIndex)
   return retval
 }

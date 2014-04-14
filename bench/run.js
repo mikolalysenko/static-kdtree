@@ -4,13 +4,11 @@ var dup = require("dup")
 var bits = require("bit-twiddle")
 
 var cases = [
-  //require("./brute-force.js"),
-  require("./static-kdt.js")
-/*
+  require("./brute-force.js"),
+  require("./static-kdt.js"),
   require("./ubi-bench.js"),
   require("./node-kdtree.js"),
   require("./look-alike.js")
-*/
 ]
 
 var columns = []
@@ -29,7 +27,7 @@ for(var i=0; i<100; ++i) {
     [Math.random(), Math.random()], [Math.random(), Math.random()] ])
 }
 var BALL_QUERIES = dup(100).map(function() {
-  return [ dup(2).map(Math.random), Math.random()*Math.random()*Math.random() ]
+  return [ dup(2).map(Math.random), Math.random()*Math.random()*Math.random()*Math.random() ]
 })
 
 var RANGE_ITER_COUNT = 1000000
@@ -66,8 +64,10 @@ for(var k=0; k<cases.length; ++k) {
     (c.dynamic ? "✓" : "✗"),
     (c.pureJS ? "✓" : "✗")
   ]
-  /*
   for(var i=0; i<NVALUES.length; ++i) {
+    if(global.gc) {
+      global.gc()
+    }
     var nn = (PREPROCESS_ITER_COUNT / POINTS[i].length)|0
     console.log("preprocess: ", POINTS[i].length, nn)
     var result = c.preprocess(POINTS[i], nn) 
@@ -79,6 +79,9 @@ for(var k=0; k<cases.length; ++k) {
     console.log(result)
   }
   for(var i=0; i<NVALUES.length; ++i) {
+    if(global.gc) {
+      global.gc()
+    }
     var nn = Math.ceil(RANGE_ITER_COUNT / POINTS[i].length)|0
     console.log("range: ", POINTS[i].length, nn)
     var result = c.range(POINTS[i], QUERIES, nn)
@@ -89,8 +92,10 @@ for(var k=0; k<cases.length; ++k) {
     }
     console.log(result)
   }
-  */
   for(var i=0; i<NVALUES.length; ++i) {
+    if(global.gc) {
+      global.gc()
+    }
     var nn = Math.ceil(RNN_ITER_COUNT / POINTS[i].length)|0
     console.log("rnn:", POINTS[i].length, nn)
     var result = c.rnn(POINTS[i], BALL_QUERIES, nn)
