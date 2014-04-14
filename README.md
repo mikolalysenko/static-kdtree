@@ -122,30 +122,7 @@ Release all resources associated with the kdtree
 
 # Comparisons
 
-Here are some preliminary benchmarks:
-
-| Data Structure | [Linear scan](http://en.wikipedia.org/wiki/Brute-force_search) | [static-kdtree](https://github.com/mikolalysenko/static-kdtree) | [Ubilabs kdtree](https://github.com/ubilabs/kd-tree-javascript) | [node-kdtree](https://github.com/justinethier/node-kdtree) | [look-alike](https://github.com/axiomzen/Look-Alike) |
-|:---|---:|---:|---:|---:|---:|
-| Dynamic? | ✓ | ✗ | ✓ | ✓ | ✗ |
-| Works in browser? | ✓ | ✓ | ✓ | ✗ | ✓ |
-| Construction: (n=100,d=2) | 0ms | 0.1652ms | 0.0993ms | 0.0358ms | 0.7314ms |
-| Construction: (n=1000,d=2) | 0ms | 1.887ms | 1.689ms | 0.419ms | 9.728ms |
-| Construction: (n=10000,d=2) | 0ms | 22.79ms | 38.38ms | 6.42ms | 157.42ms |
-| Construction: (n=100000,d=2) | 0ms | 283ms | 959.1ms | 124.3ms | 2379.9ms |
-| Range: (n=100,d=2) | 0.001231ms | 0.003839ms | N/A | N/A | N/A |
-| Range: (n=1000,d=2) | 0.01321ms | 0.01217ms | N/A | N/A | N/A |
-| Range: (n=10000,d=2) | 0.1291ms | 0.0771ms | N/A | N/A | N/A |
-| Range: (n=100000,d=2) | 1.633ms | 0.672ms | N/A | N/A | N/A |
-| rNN: (n=100,d=2) | 0.001397ms | 0.005994ms | 0.024014ms | 0.00231ms | N/A |
-| rNN: (n=1000,d=2) | 0.01452ms | 0.01645ms | 0.22984ms | 0.01893ms | N/A |
-| rNN: (n=10000,d=2) | 0.1437ms | 0.0919ms | 2.673ms | 0.1838ms | N/A |
-| rNN: (n=100000,d=2) | 2.193ms | 0.909ms | 61.131ms | 2.527ms | N/A |
-
-**THESE NUMBERS ARE NOT YET FINAL**
-
-### Some thoughts:
-
-To me at least, these results are pretty shocking. None of the kdtree data structures on npm outperform a simple linear scan, which makes them worse than useless (even node-kdtree, which uses native C++ bindings). Even for this module - which is currently the only one to beat the simple brute force algorithm -  a linear scan will be faster up to around 1000 points or so.  However, for sufficiently *large* data sets using a kdtree can make sense especially for interactive applications.
+**WORK IN PROGRESS**
 
 # Credits
 (c) 2014 Mikola Lysenko. MIT License
