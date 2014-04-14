@@ -132,7 +132,148 @@ proto.range = function kdtRangeQuery(lo, hi, visit) {
 }
 
 proto.rnn = function(point, radius, visit) {
-  //TODO: Implement this
+  var d = this.dimension
+  var n = this.length
+  var points = this.points
+  var ids = this.ids
+
+  //Walk tree in level order, skipping subtree which do not intersect range
+  var visitRange = ndscratch.malloc([n, 2, d])
+  var visitIndex = pool.mallocInt32(n)
+  var rangeData = visitRange.data
+  var pointData = points.data
+  var visitCount = 1
+  var visitTop = 0
+  var r2 = radius*radius
+  var retval
+
+  //Initialize top of queue
+  visitIndex[0] = 0
+  visitIndex[1] = 0
+  for(var i=0; i<d; ++i) {
+    visitRange.set(0, i, -Infinity)
+    visitRange.set(1, i,  Infinity)
+  }
+
+  //Walk over queue
+  while(visitTop < visitCount) {
+    var idx = visitIndex[visitTop]
+    var pidx = points.index(idx, 0)
+
+    //Check if point in sphere
+    var d2 = 0.0
+    for(var i=0; i<d; ++i) {
+      var dd = point[i] - pointArray[pidx+i]
+      d2 += dd * dd
+    }
+    if(d2 <= r2) {
+      retval = visit(ids[idx])
+      if(retval !== undefined) {
+        break
+      }
+    }
+
+    //Visit children
+    var k = bits.log2(idx+1)%d
+    var loidx = visitRange.index(visitTop, 0, 0)
+    var hiidx = visitRange.index(visitTop, 1, 0)
+    
+    //Find distance for left/right subtrees    
+    var d2l = 0.0
+    var d2h = 0.0
+    for(var i=0; i<k; ++i) {
+      var hk = rangeData[hiidx++]
+      var lk = rangeData[loidx++]
+      var qk = point[i]
+      var dd = 0.0
+      if(qk < lk) {
+        dd = lk - qk
+      } else if(qk > hk) {
+        dd = qk - hk
+      }
+      dd *= dd
+      d2l += dd
+      d2r += dd
+    }
+
+    //Handle split axis
+    var qk = point[k]
+    var pk = pointData[pidx+k]
+    var hk = rangeData[hiidx++]
+    var lk = rangeData[loidx++]
+    if(qk < lk) {
+      var dd = lk - qk
+      dd *= dd
+      d2l += dd
+      d2r += ddt
+    } else if(qk < pk) {
+      var dd = pk - qk
+      d2r += dd * dd
+    } else if(qk < hk) {
+      var dd = pk - qk
+      d2l += dd * dd
+    } else {
+      var dd = hk - qk
+      dd *= dd
+      d2l += dd
+      d2r += ddt
+    }
+
+    for(var i=k+1; k<d; ++i) {
+      var hk = rangeData[hiidx++]
+      var lk = rangeData[loidx++]
+      var qk = point[i]
+      var dd = 0.0
+      if(qk < lk) {
+        dd = lk - qk
+      } else if(qk > hk) {
+        dd = qk - hk
+      }
+      dd *= dd
+      d2l += dd
+      d2r += dd
+    }
+
+    if(d2l <= r2) {
+      var left = 2 * idx + 1
+      if(left < n) {
+        visitIndex[visitCount] = left
+        var y = visitRange.index(visitCount, 0, 0)
+        for(var i=0; i<d; ++i) {
+          rangeData[y+i] = rangeData[loidx+i]
+        }
+        var z = visitRange.index(visitCount, 1, 0)
+        for(var i=0; i<d; ++i) {
+          rangeData[z+i] = rangeData[hiidx+i]
+        }
+        rangeData[z+k] = Math.min(hk, pk)
+        visitCount += 1
+      }
+    }
+    if(d2r <= r2) {
+      var right = 2 * (idx + 1)
+      if(right < n) {
+        visitIndex[visitCount] = right
+        var y = visitRange.index(visitCount, 0, 0)
+        for(var i=0; i<d; ++i) {
+          rangeData[y+i] = rangeData[loidx+i]
+        }
+        var z = visitRange.index(visitCount, 1, 0)
+        for(var i=0; i<d; ++i) {
+          rangeData[z+i] = rangeData[hiidx+i]
+        }
+        rangeData[y+k] = Math.max(lk, pk)
+        visitCount += 1
+      }
+    }
+
+    //Increment pointer
+    visitTop += 1
+  }
+
+  ndscratch.free(visitRange)
+  pool.free(visitIndex)
+  return retval
 }
 
 proto.knn = function(point, k) {
