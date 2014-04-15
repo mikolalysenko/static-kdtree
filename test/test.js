@@ -125,7 +125,6 @@ tape("kdtree-range", function(t) {
 
   t.end()
 })
-*/
 
 tape("kdtree-rnn", function(t) {
   function verifyKDT(points, queries) {
@@ -186,6 +185,48 @@ tape("kdtree-rnn", function(t) {
       return [ dup(3).map(Math.random), Math.random() ]
     }))
   }
+
+  t.end()
+})
+*/
+
+tape("kdtree-nn", function(t) {
+
+  function verifyKDT(points, queries) {
+    var tree = createTree(points)
+    checkTreeInvariants(t, tree, points)
+
+    for(var i=0; i<queries.length; ++i) {
+      var p = queries[i][0]
+      var r = queries[i][1]
+
+      var result = []
+      tree.rnn(p, r, function(idx) {
+        result.push(idx)
+      })
+      result.sort(function(a,b) {
+        return a-b
+      })
+
+      //Run brute force query
+      var bruteResult = []
+      _outer_loop:
+      for(var j=0; j<points.length; ++j) {
+        var d2 = 0.0
+        for(var k=0; k<tree.dimension; ++k) {
+          var dd = points[j][k] - p[k]
+          d2 += dd*dd
+        }
+        if(d2 <= r*r) {
+          bruteResult.push(j)
+        }
+      }
+
+      //Check consistent
+      t.same(result, bruteResult, "checking query: [" + p.join() + "] - r=" + r)
+    }
+  }
+
 
   t.end()
 })

@@ -4,17 +4,19 @@ var dup = require("dup")
 var bits = require("bit-twiddle")
 
 var cases = [
-  require("./brute-force.js"),
   require("./static-kdt.js"),
+  require("./brute-force.js"),
   require("./ubi-bench.js"),
-  require("./node-kdtree.js"),
+  require("./node-kdtree.js")
+  /*
   require("./look-alike.js")
+  */
 ]
 
 var columns = []
 
 var NVALUES = [100, 1000, 10000, 100000]
-var KVALUES = [10, 100]
+var KVALUES = [1, 10, 100]
 var POINTS = NVALUES.map(function(n) {
   var points = new Array(n)
   for(var i=0; i<n; ++i) {
@@ -33,7 +35,6 @@ var BALL_QUERIES = dup(100).map(function() {
 var KNN_QUERIES = dup(100).map(function() {
   return dup(2).map(Math.random)
 })
-
 var PREPROCESS_ITER_COUNT = 1000000
 var RANGE_ITER_COUNT = 1000000
 var RNN_ITER_COUNT = 1000000
@@ -75,6 +76,7 @@ for(var k=0; k<cases.length; ++k) {
     (c.dynamic ? "✓" : "✗"),
     (c.pureJS ? "✓" : "✗")
   ]
+  /*
   for(var i=0; i<NVALUES.length; ++i) {
     if(global.gc) {
       global.gc()
@@ -117,6 +119,7 @@ for(var k=0; k<cases.length; ++k) {
     }
     console.log(result)
   }
+  */
   KVALUES.forEach(function(k) {
     for(var i=0; i<NVALUES.length; ++i) {
       if(global.gc) {
@@ -124,9 +127,14 @@ for(var k=0; k<cases.length; ++k) {
       }
       var nn = Math.max(Math.ceil(KNN_ITER_COUNT/(POINTS[i].length*k)), 10)|0
       console.log("knn:", POINTS[i].length, nn, "k=", k)
-      var result = c.knn(POINTS[i], KNN_QUERIES.map(function(v) {
-        return [v,k]
-      }), nn)
+      var result
+      if(k === 1) {
+        result = c.nn(POINTS[i], KNN_QUERIES, nn)
+      } else {
+        result = c.knn(POINTS[i], KNN_QUERIES.map(function(v) {
+          return [v,k]
+        }), nn)
+      }
       if(typeof result[0] === "number") {
         column.push((result[0] / (nn*KNN_QUERIES.length)) + "ms")
       } else {

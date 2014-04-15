@@ -96,5 +96,33 @@ module.exports = {
     var end = Date.now()
     ndscratch.free(pointArray)
     return [end-start, weight]
+  },
+  nn: function(points, queries, repeat) {
+    var m = queries.length
+    var d = points[0].length
+    var n = points.length
+    var count = 0
+    var start = Date.now()
+    for(var rcount=0; rcount<repeat; ++rcount) {
+      for(var i=0; i<m; ++i) {
+        var q = queries[i]
+        var closest = Infinity
+        var closestId = -1
+        for(var j=0; j<n; ++j) {
+          var d2 = 0.0
+          var p = points[j]
+          for(var k=0; k<d; ++k) {
+            d2 += Math.pow(p[k] - q[k], 2)
+          }
+          if(d2 < closest) {
+            closest = d2
+            closestId = j
+          }
+        }
+        count += closestId
+      }
+    }
+    var end = Date.now()
+    return [end-start, count]
   }
 }

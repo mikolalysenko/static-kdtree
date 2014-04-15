@@ -13,6 +13,7 @@ var ndscratch = require("ndarray-scratch")
 var pool = require("typedarray-pool")
 var inorderTree = require("inorder-tree-layout")
 var bits = require("bit-twiddle")
+var KDTHeap = require("./lib/heap.js")
 
 function KDTree(points, ids, n, d) {
   this.points = points
@@ -237,11 +238,107 @@ proto.rnn = function(point, radius, visit) {
   return retval
 }
 
-proto.knn = function(point, k) {
-  //Check degenerate cases
+proto.nn = function(point) {
   var n = this.length
   if(n < 1) {
-    return
+    return -1
+  }
+  var d = this.dimension
+  var points = this.points
+  var pointData = points.data
+  var dataVector = pool.mallocFloat64(d)
+
+  var toVisit = new KDTHeap(n, d+1)
+  var index = toVisit.index
+  var data = toVisit.data
+  index[0] = 0
+  for(var i=0; i<=d; ++i) {
+    data[i] = 0
+  }
+  toVisit.count += 1
+
+  var nearest = -1
+  var nearestD = Infinity
+  while(toVisit.count > 0) {
+    if(data[0] >= nearestD) {
+      break
+    }
+
+    var idx = index[0]
+    var pidx = points.index(idx, 0)
+    var d2 = 0.0
+    for(var i=0; i<d; ++i) {
+      d2 += Math.pow(point[i]-pointData[pidx+i], 2)
+    }
+    if(d2 < nearestD) {
+      nearestD = d2
+      nearest = idx
+    }
+
+    //Compute distance bounds for children
+    var k = bits.log2(idx+1)%d
+    var ds = 0
+    for(var i=0; i<d; ++i) {
+      var dd = data[i+1]
+      if(i !== k) {
+        ds += dd
+      }
+      dataVector[i] = dd
+    }
+    var qk = point[k]
+    var pk = pointData[pidx+k]
+    var dk = data[1+k]
+    var lk = dk
+    var hk = dk
+    if(qk < pk) {
+      hk = Math.max(dk, Math.pow(pk - qk, 2))
+    } else {
+      lk = Math.max(dk, Math.pow(pk - qk, 2))
+    }
+    var d2l = lk + ds
+    var d2h = hk + ds
+
+    toVisit.pop()
+    if(d2l <= nearestD) {
+      var left = 2 * idx + 1
+      if(left < n) {
+        var vcount = toVisit.count
+        index[vcount] = left
+        var vptr = vcount * (d+1)
+        data[vptr] = d2l
+        for(var i=1; i<d; ++i) {
+          data[vptr+i] = dataVector[i-1]
+        }
+        data[vptr+k+1] = lk
+        toVisit.push()
+      }
+    }
+    if(d2h <= nearestD) {
+      var right = 2 * (idx + 1)
+      if(right < n) {
+        var vcount = toVisit.count
+        index[vcount] = right
+        var vptr = vcount * (d+1)
+        data[vptr] = d2h
+        for(var i=1; i<d; ++i) {
+          data[vptr+i] = dataVector[i-1]
+        }
+        data[vptr+k+1] = hk
+        toVisit.push()
+      }
+    }
+  }
+
+  pool.freeFloat64(dataVector)
+  toVisit.dispose()
+  return this.ids[nearest]
+}
+
+proto.knn = function(point, k, maxDistance) {
+  //Check degenerate cases
+  var n = this.length
+  if(n < 1 || maxDistance < 0) {
+    return []
   }
   var ids = this.ids
   if(n < k) {

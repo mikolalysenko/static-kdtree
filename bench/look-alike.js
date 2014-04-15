@@ -28,5 +28,9 @@ module.exports = {
   },
   knn: function() {
     return ["N/A", 0]
+  },
+  nn: function() {
+    return ["N/A", 0]
   }
+
 }

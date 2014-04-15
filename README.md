@@ -100,17 +100,25 @@ Visit all points contained in the sphere of radius `r` centered at `point`
 
 **Time Complexity** `O(n^(1-1/d) + k)`, where `k` is the number of points in the sphere
 
-#### `kdt.knn(point, k, maxDistance, visit)`
+#### `kdt.nn(point)`
+Returns the index of the closest point to `point`
+
+* `point` is a query point
+
+**Returns** The index of the closest point in the tree to `point`, or `-1` if the tree is empty.
+
+**Time Complexity** `O(n log(n))` in the worst case, but in practice much faster if the points are uniformly distributed.
+
+#### `kdt.knn(point, k[, maxDistance])`
 Returns a list of the k closest points to point in the tree.
 
 * `point` is the point which is being queried
 * `k` is the number of points to query
-* `maxDistance` bounds the distance of the returned points. To search the whole tree, pass in `Infinity`
-* `visit(idx)` is a function which is called once per element
+* `maxDistance` bounds the distance of the returned points. Default is `Infinity`
 
-**Returns** The last returned value of `visit`
+**Returns** A list of indices for the `k` closest points to `point` in the `tree` which are within distance `< maxDistance`.
 
-**Time Complexity** `O((n + k) log(k))`, but may be faster if the points in the tree are uniformly distributed
+**Time Complexity** `O((n + k) log(n + k))`, but may be faster if the points in the tree are uniformly distributed
 
 #### `kdt.serialize()`
 Returns a serializable JSON object encoding the state of the kdtree
