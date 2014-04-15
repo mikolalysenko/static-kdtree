@@ -20,6 +20,10 @@ module.exports = {
     return ["N/A", 0]
   },
   rnn: function(points, queries, repeat) {
+    return ["ERROR", 0]
+    /*
+
+    //These results are not correct.  Also it runs really slow
     var distance = function(a, b){
       return Math.pow(a[0] - b[0], 2) +  Math.pow(a[1] - b[1], 2);
     }
@@ -35,6 +39,7 @@ module.exports = {
     }
     var end = Date.now()
     return [end-start, count]
+    */
   },
   knn: function(points, queries, repeat) {
     var distance = function(a, b){

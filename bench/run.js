@@ -2,16 +2,19 @@
 
 var dup = require("dup")
 var bits = require("bit-twiddle")
+var async = require("async")
 
 var cases = [
-  require("./static-kdt.js"),
   require("./brute-force.js"),
-  require("./ubi-bench.js"),
-  require("./node-kdtree.js")
-  /*
-  require("./look-alike.js")
-  */
+  require("./static-kdt.js"),
+  require("./ubi-bench.js") 
+  //require("./look-alike.js")  //Broken
 ]
+
+if((typeof window) === "undefined") {
+  var nkd = (typeof window  === "undefined") ? "./node-kdtree" : ""
+  cases.push(require(nkd))
+}
 
 var columns = []
 
@@ -38,7 +41,7 @@ var KNN_QUERIES = dup(100).map(function() {
 var PREPROCESS_ITER_COUNT = 1000000
 var RANGE_ITER_COUNT = 1000000
 var RNN_ITER_COUNT = 1000000
-var KNN_ITER_COUNT = 1000000
+var KNN_ITER_COUNT = 100000
 
 var firstColumn = [
   "Data Structure",
@@ -67,92 +70,101 @@ KVALUES.forEach(function(k) {
 
 columns.push(firstColumn)
 
-for(var k=0; k<cases.length; ++k) {
-  var c = cases[k]
-  console.log("testing: ", c.name)
+var todo = []
+
+cases.forEach(function(c) {
   var column = [
-    "[" + c.name + "](" + c.url + ")",
-    "---:",
-    (c.dynamic ? "✓" : "✗"),
-    (c.pureJS ? "✓" : "✗")
-  ]
-  /*
-  for(var i=0; i<NVALUES.length; ++i) {
-    if(global.gc) {
-      global.gc()
-    }
-    var nn = (PREPROCESS_ITER_COUNT / POINTS[i].length)|0
-    console.log("preprocess: ", POINTS[i].length, nn)
-    var result = c.preprocess(POINTS[i], nn) 
-    if(typeof result === "number") {
-      column.push((result/nn) + "ms")
-    } else {
-      column.push(result)
-    }
-    console.log(result)
-  }
-  for(var i=0; i<NVALUES.length; ++i) {
-    if(global.gc) {
-      global.gc()
-    }
-    var nn = Math.ceil(RANGE_ITER_COUNT / POINTS[i].length)|0
-    console.log("range: ", POINTS[i].length, nn)
-    var result = c.range(POINTS[i], QUERIES, nn)
-    if(typeof result[0] === "number") {
-      column.push((result[0] / (nn * QUERIES.length)) + "ms")
-    } else {
-      column.push(result[0])
-    }
-    console.log(result)
-  }
-  for(var i=0; i<NVALUES.length; ++i) {
-    if(global.gc) {
-      global.gc()
-    }
-    var nn = Math.ceil(RNN_ITER_COUNT / POINTS[i].length)|0
-    console.log("rnn:", POINTS[i].length, nn)
-    var result = c.rnn(POINTS[i], BALL_QUERIES, nn)
-    if(typeof result[0] === "number") {
-      column.push((result[0] / (nn*BALL_QUERIES.length)) + "ms")
-    } else {
-      column.push(result[0])
-    }
-    console.log(result)
-  }
-  */
-  KVALUES.forEach(function(k) {
-    for(var i=0; i<NVALUES.length; ++i) {
-      if(global.gc) {
-        global.gc()
-      }
-      var nn = Math.max(Math.ceil(KNN_ITER_COUNT/(POINTS[i].length*k)), 10)|0
-      console.log("knn:", POINTS[i].length, nn, "k=", k)
-      var result
-      if(k === 1) {
-        result = c.nn(POINTS[i], KNN_QUERIES, nn)
+      "[" + c.name + "](" + c.url + ")",
+      "---:",
+      (c.dynamic ? "✓" : "✗"),
+      (c.pureJS ? "✓" : "✗")
+    ]
+  todo.push(function(next) {
+    console.log("testing: ", c.name)
+    next()
+  })
+  NVALUES.forEach(function(n,i) {
+    todo.push(function(next) {
+      var nn = (PREPROCESS_ITER_COUNT / POINTS[i].length)|0
+      console.log("preprocess: ", POINTS[i].length, nn)
+      var result = c.preprocess(POINTS[i], nn) 
+      if(typeof result === "number") {
+        column.push((result/nn) + "ms")
       } else {
-        result = c.knn(POINTS[i], KNN_QUERIES.map(function(v) {
-          return [v,k]
-        }), nn)
+        column.push(result)
       }
+      console.log(result)
+      setTimeout(next, 10)
+    })
+  })
+  NVALUES.forEach(function(n,i) {
+    todo.push(function(next) {
+      var nn = Math.ceil(RANGE_ITER_COUNT / POINTS[i].length)|0
+      console.log("range: ", POINTS[i].length, nn)
+      var result = c.range(POINTS[i], QUERIES, nn)
       if(typeof result[0] === "number") {
-        column.push((result[0] / (nn*KNN_QUERIES.length)) + "ms")
+        column.push((result[0] / (nn * QUERIES.length)) + "ms")
       } else {
         column.push(result[0])
       }
-      console.log(result)
-    }
+      console.log(result.join())
+      setTimeout(next, 10)
+    })
   })
-  columns.push(column)
-}
+  NVALUES.forEach(function(n,i) {
+    todo.push(function(next){
+      var nn = Math.ceil(RNN_ITER_COUNT / POINTS[i].length)|0
+      console.log("rnn:", POINTS[i].length, nn)
+      var result = c.rnn(POINTS[i], BALL_QUERIES, nn)
+      if(typeof result[0] === "number") {
+        column.push((result[0] / (nn*BALL_QUERIES.length)) + "ms")
+      } else {
+        column.push(result[0])
+      }
+      console.log(result.join())
+      setTimeout(next, 10)
+    })
+  })
+  KVALUES.forEach(function(k) {
+    NVALUES.forEach(function(n,i) {
+      todo.push(function(next) {
+        var nn = Math.max(Math.ceil(KNN_ITER_COUNT/(Math.sqrt(POINTS[i].length)*k)), 10)|0
+        console.log("knn:", POINTS[i].length, nn, "k=", k)
+        var result
+        if(k === 1) {
+          result = c.nn(POINTS[i], KNN_QUERIES, nn)
+        } else {
+          result = c.knn(POINTS[i], KNN_QUERIES.map(function(v) {
+            return [v,k]
+          }), nn)
+        }
+        if(typeof result[0] === "number") {
+          column.push((result[0] / (nn*KNN_QUERIES.length)) + "ms")
+        } else {
+          column.push(result[0])
+        }
+        console.log(result.join())
+        setTimeout(next, 10)
+      })
+    })
+  })
+  todo.push(function(next) {
+    columns.push(column)
+    setTimeout(next, 10)
+  })
+})
 
-var columnStr = []
-for(var i=0; i<columns[0].length; ++i) {
-  for(var j=0; j<columns.length; ++j) {
-    columnStr.push(" | ")
-    columnStr.push(columns[j][i])
+todo.push(function(next) {
+  var columnStr = []
+  for(var i=0; i<columns[0].length; ++i) {
+    for(var j=0; j<columns.length; ++j) {
+      columnStr.push(" | ")
+      columnStr.push(columns[j][i])
+    }
+    columnStr.push(" |\n")
   }
-  columnStr.push(" |\n")
-}
+  console.log(columnStr.join(""))
+  setTimeout(next, 10)
+})
 
-console.log(columnStr.join(""))
+async.series(todo)

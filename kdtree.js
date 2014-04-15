@@ -238,10 +238,17 @@ proto.rnn = function(point, radius, visit) {
   return retval
 }
 
-proto.nn = function(point) {
+proto.nn = function(point, maxDistance) {
   var n = this.length
   if(n < 1) {
     return -1
+  }
+  if(typeof maxDistance === "number") {
+    if(maxDistance < 0) {
+      return -1
+    } 
+  } else {
+    maxDistance = Infinity
   }
   var d = this.dimension
   var points = this.points
@@ -257,21 +264,23 @@ proto.nn = function(point) {
   }
   toVisit.count += 1
 
+  //console.log("query:", point)
+
   var nearest = -1
-  var nearestD = Infinity
+  var nearestD = maxDistance
+
   while(toVisit.count > 0) {
     if(data[0] >= nearestD) {
       break
     }
 
-/*
+    /*
     console.log("visit:", 
-      nearestD, 
       index[0], 
-      data[0], 
-      Array.prototype.slice.call(data,1,d+1), 
-      unpack(points.pick(index[0])))
-*/
+      "nearD=", nearestD, 
+      "idxD=", data[0], 
+      "point=", unpack(points.pick(index[0])))
+    */
 
     var idx = index[0]
     var pidx = points.index(idx, 0)
@@ -296,7 +305,7 @@ proto.nn = function(point) {
     }
     var qk = point[k]
     var pk = pointData[pidx+k]
-    var dk = data[1+k]
+    var dk = dataVector[k]
     var lk = dk
     var hk = dk
     if(qk < pk) {
@@ -307,7 +316,12 @@ proto.nn = function(point) {
     var d2l = lk + ds
     var d2h = hk + ds
 
+    //console.log("k=", k, "d=",d2l, d2h, nearestD)
+
+    //console.log("pop", idx)
     toVisit.pop()
+    //console.log([].slice.call(index, 0,toVisit.count), unpack(ndarray(toVisit.data, [toVisit.count, d+1])))
+
     if(d2l < nearestD) {
       var left = 2 * idx + 1
       if(left < n) {
@@ -315,11 +329,13 @@ proto.nn = function(point) {
         index[vcount] = left
         var vptr = vcount * (d+1)
         data[vptr] = d2l
-        for(var i=1; i<d; ++i) {
+        for(var i=1; i<=d; ++i) {
           data[vptr+i] = dataVector[i-1]
         }
         data[vptr+k+1] = lk
+        //console.log("push", left)
         toVisit.push()
+        //console.log([].slice.call(index, 0,toVisit.count), unpack(ndarray(toVisit.data, [toVisit.count, d+1])))
       }
     }
     if(d2h < nearestD) {
@@ -329,11 +345,13 @@ proto.nn = function(point) {
         index[vcount] = right
         var vptr = vcount * (d+1)
         data[vptr] = d2h
-        for(var i=1; i<d; ++i) {
+        for(var i=1; i<=d; ++i) {
           data[vptr+i] = dataVector[i-1]
         }
         data[vptr+k+1] = hk
+        //console.log("push", right)
         toVisit.push()
+        //console.log([].slice.call(index, 0,toVisit.count), unpack(ndarray(toVisit.data, [toVisit.count, d+1])))
       }
     }
   }
