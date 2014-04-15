@@ -264,6 +264,15 @@ proto.nn = function(point) {
       break
     }
 
+/*
+    console.log("visit:", 
+      nearestD, 
+      index[0], 
+      data[0], 
+      Array.prototype.slice.call(data,1,d+1), 
+      unpack(points.pick(index[0])))
+*/
+
     var idx = index[0]
     var pidx = points.index(idx, 0)
     var d2 = 0.0
@@ -299,7 +308,7 @@ proto.nn = function(point) {
     var d2h = hk + ds
 
     toVisit.pop()
-    if(d2l <= nearestD) {
+    if(d2l < nearestD) {
       var left = 2 * idx + 1
       if(left < n) {
         var vcount = toVisit.count
@@ -313,7 +322,7 @@ proto.nn = function(point) {
         toVisit.push()
       }
     }
-    if(d2h <= nearestD) {
+    if(d2h < nearestD) {
       var right = 2 * (idx + 1)
       if(right < n) {
         var vcount = toVisit.count

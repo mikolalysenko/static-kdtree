@@ -59,7 +59,7 @@ Creates a kdtree from the given collection of points.
 
 **Time Complexity** This operation takes O(n log(n))
 
-### `var kdt = createKDTree.deserialze(data)`
+#### `var kdt = createKDTree.deserialze(data)`
 Restores a serialized kdtree.
 
 * `data` is a JavaScript object as produced by calling `kdt.serialize`

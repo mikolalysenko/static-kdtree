@@ -195,37 +195,54 @@ tape("kdtree-nn", function(t) {
   function verifyKDT(points, queries) {
     var tree = createTree(points)
     checkTreeInvariants(t, tree, points)
+    var n = points.length
+    var d = tree.dimension
 
     for(var i=0; i<queries.length; ++i) {
-      var p = queries[i][0]
-      var r = queries[i][1]
+      var q = queries[i]
+      var result = tree.nn(q)
 
-      var result = []
-      tree.rnn(p, r, function(idx) {
-        result.push(idx)
-      })
-      result.sort(function(a,b) {
-        return a-b
-      })
-
-      //Run brute force query
-      var bruteResult = []
-      _outer_loop:
-      for(var j=0; j<points.length; ++j) {
+      var closest = Infinity
+      var closestId = -1
+      for(var j=0; j<n; ++j) {
         var d2 = 0.0
-        for(var k=0; k<tree.dimension; ++k) {
-          var dd = points[j][k] - p[k]
-          d2 += dd*dd
+        var p = points[j]
+        for(var k=0; k<d; ++k) {
+          d2 += Math.pow(p[k] - q[k], 2)
         }
-        if(d2 <= r*r) {
-          bruteResult.push(j)
+        if(d2 < closest) {
+          closest = d2
+          closestId = j
         }
       }
 
       //Check consistent
-      t.same(result, bruteResult, "checking query: [" + p.join() + "] - r=" + r)
+      t.same(result, closestId, "checking query: [" + p.join() + "]")
     }
   }
+
+  verifyKDT([
+    [0],
+    [1],
+    [2],
+    [3],
+    [4],
+    [5]
+  ], [
+    [-1],
+    [0],
+    [100],
+    [1.2],
+    [5]
+  ])
+
+
+  //Fuzz
+  verifyKDT(dup(100).map(function() {
+    return dup(3).map(Math.random)
+  }), dup(100).map(function() {
+    return dup(3).map(Math.random)
+  }))
 
 
   t.end()
