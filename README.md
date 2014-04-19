@@ -155,7 +155,7 @@ Returns a list of the k closest points to point in the tree.
 Returns a serializable JSON object encoding the state of the kdtree.  This can be passed to `deserialize()` to restore the kdtree.
 
 #### `kdt.dispose()`
-Release all resources associated with the kdtree
+Release all resources associated with the kdtree.  This is not necessary, but can reduce garbage collector pressure over time.
 
 **Time Complexity** `O(1)`
 
