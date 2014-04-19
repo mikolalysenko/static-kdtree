@@ -1,4 +1,4 @@
-# Results for node 0.10.26
+# node 0.10.26
 
 | Data Structure | [Linear scan](http://en.wikipedia.org/wiki/Brute-force_search) | [static-kdtree](https://github.com/mikolalysenko/static-kdtree) | [Ubilabs kdtree](https://github.com/ubilabs/kd-tree-javascript) | [node-kdtree](https://github.com/justinethier/node-kdtree) |
 | :--- | ---: | ---: | ---: | ---: |
