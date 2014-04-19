@@ -43,7 +43,6 @@ function checkTreeInvariants(t, tree, points) {
     dup([tree.dimension], -Infinity), 
     dup([tree.dimension], Infinity))
 }
-/*
 
 tape("kdtree-constructor", function(t) {
 
@@ -55,6 +54,16 @@ tape("kdtree-constructor", function(t) {
 })
 
 tape("kdtree-range", function(t) {
+
+  //Check return value
+  var testTree = createTree([[1], [2], [3]])
+
+  t.equals(testTree.range([-1], [1.5], function(p) {
+    if(p === 0) {
+      return "foo"
+    }
+    return "bar"
+  }), "foo")
 
   function verifyKDT(points, queries) {
     var tree = createTree(points)
@@ -188,9 +197,7 @@ tape("kdtree-rnn", function(t) {
 
   t.end()
 })
-*/
 
-/*
 tape("kdtree-nn", function(t) {
 
   function verifyKDT(points, queries) {
@@ -282,7 +289,6 @@ tape("kdtree-nn", function(t) {
 
   t.end()
 })
-*/
 
 tape("kdtree-knn", function(t) {
 
@@ -347,6 +353,7 @@ tape("kdtree-knn", function(t) {
   t.end()
 })
 
+
 tape("kdtree-serialize", function(t) {
 
   //Fuzz
@@ -354,13 +361,19 @@ tape("kdtree-serialize", function(t) {
     return dup(4).map(Math.random)
   })
 
+
   var tree = createTree(pts)
-  checkTreeInvariants(tree)
+  checkTreeInvariants(t, tree, pts)
 
   var data = tree.serialize()
+  console.log(data)
   var ntree = createTree.deserialize(data)
-  checkTreeInvariants(ntree)
-  t.same(ntree, data)
-  
+  checkTreeInvariants(t, ntree, pts)
+  t.same(ntree.length, tree.length)
+  t.same(ntree.dimension, tree.dimension)
+  t.same([].slice.call(ntree.ids, 0, ntree.length), [].slice.call(tree.ids, 0, tree.length))
+  t.same([].slice.call(ntree.points, 0, ntree.dimension*ntree.length), [].slice.call(tree.points, 0, tree.dimension*tree.length))
+
+
   t.end()
 })

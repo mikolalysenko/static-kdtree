@@ -1,7 +1,7 @@
 "use strict"
 
 module.exports = createKDTree
-module.exports.deserialize = deserialzeKDTree
+module.exports.deserialize = deserializeKDTree
 
 var ndarray = require("ndarray")
 var ndselect = require("ndarray-select")
@@ -25,8 +25,8 @@ var proto = KDTree.prototype
 proto.serialize = function() {
   if(this.length > 0) {
     return {
-      p: Array.prototype.slice(this.points.data, 0, this.length*this.dimension),
-      i: Array.prototype.slice(this.ids, 0, this.length)
+      p: Array.prototype.slice.call(this.points.data, 0, this.length*this.dimension),
+      i: Array.prototype.slice.call(this.ids, 0, this.length)
     }
   } else {
     return { d: this.dimension }
@@ -582,7 +582,7 @@ function createKDTree(points) {
   return new KDTree(pointArray, indexArray, n, d)
 }
 
-function deserialzeKDTree(data) {
+function deserializeKDTree(data) {
   var points = data.p
   var ids = data.i
   if(points) {
