@@ -59,6 +59,9 @@ console.log("index of closest point to [0,1,2] is ", tree.nn([0,1,2]))
 
 //And k-nearest neighbor queries
 console.log("index of 10 closest points to [0,1,2] are ", tree.knn([0,1,2], 10))
+
+//For performance, be sure to delete tree when you are done with it
+tree.dispose()
 ```
 
 # Install
