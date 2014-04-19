@@ -338,6 +338,10 @@ proto.nn = function(point, maxDistance) {
 
   pool.freeFloat64(dataVector)
   toVisit.dispose()
+  
+  if(nearest < 0) {
+    return -1
+  }
   return this.ids[nearest]
 }
 
