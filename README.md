@@ -24,14 +24,41 @@ It is also worth mentioning that for approximate nearest neighbor queries or que
 
 This module works both in node.js and with [browserify](http://browserify.org/).
 
-**THIS MODULE IS A WORK IN PROGRESS**
-
 # Example
 
 ```javascript
+//Import library
 var createKDTree = require("static-kdtree")
 
+//Create a bunch of points
+var points = [
+  [0, 1, 100],
+  [-5, 0.11, Math.PI],
+  [0, 10, -13],
 
+  // ...
+
+  [4, 3, 1]
+]
+
+//Create the tree
+var tree = createKDTree(points)
+
+//Iterate over all points in the bounding box
+tree.range([-1, -1, -1], [10, 1, 2], function(idx) {
+  console.log("visit:", idx)  //idx = index of point in points array
+})
+
+//Can also search in spheres
+tree.rnn([0,0,0], 10, function(idx) {
+  console.log("point " + idx + " is in sphere at origin with radius=10")
+})
+
+//Nearest neighbor queries
+console.log("index of closest point to [0,1,2] is ", tree.nn([0,1,2]))
+
+//And k-nearest neighbor queries
+console.log("index of 10 closest points to [0,1,2] are ", tree.knn([0,1,2], 10))
 ```
 
 # Install
@@ -131,7 +158,20 @@ Release all resources associated with the kdtree
 
 # Comparisons
 
-**WORK IN PROGRESS**
+To test the performance of this module, experiments were performed against two other kdtree libraries ([Ubilabs kdtree](https://github.com/ubilabs/kd-tree-javascript) and [node-kdtree](https://github.com/justinethier/node-kdtree)), as well as a naive brute force algorithm.  Ubilabs kdtree is pure JavaScript, and supports only kNN queries and does not correctly implement rNN queries.  node-kdtree is a wrapper over the native C++ library, [libkdtree](https://code.google.com/p/kdtree/), and only supports rNN and NN queries.  Neither library implements range queries.  These libraries were tested in node.js 0.10.26 and Chrome 36 on a MacBook Pro, Core i7 2.3GHz with 8GB of RAM.  The results from these experiments can be found here:
+
+* [node 0.10.26](https://github.com/mikolalysenko/static-kdtree/blob/master/bench/node-0.10-results.md#results-for-node-01026)
+* [Chrome 36](https://github.com/mikolalysenko/static-kdtree/blob/master/bench/chrome-36-results.md#chrome-36)
+
+And the code for these experiments can be found in the bench/ subdirectory of this repository.
+
+## Observations
+
+Up to 1000 points or so brute force searching is the fastest method for answering any query, so for small data sets it is probably better to not use a kdtree or any data structure in the first place.
+
+The latest version of v8 in Chrome 36 is strictly faster than node.js for all test cases and modules.  Because of native C++ dependencies, node-kdtree cannot run in a browser, but even so the Chrome 36 version of static-kdtree is 2-3x faster.  static-kdtree is also up to an order of magnitude faster than Ubilabs kdtree at all operations, making it by far the best choice in the browser.
+
+In node.js, the situation is slightly more ambiguous.  node-kdtree has the fastest construction time, and also answers 1-nearest neighbor queries faster.  Both Ubilabs kdtree and static-kdtree take about the same amount of time on nearest neighbors queries.  On all other queries static-kdtree is again strictly faster.  It is unclear why the performance of nearest neighbor queries is slightly slower in node.js, but perhaps it may be related to node.js' v8 engine being several versions behind Chrome.  In future updates this situation may start to look more like Chrome, making static-kdtree likely to be the better option for long term.
 
 # Credits
 (c) 2014 Mikola Lysenko. MIT License
