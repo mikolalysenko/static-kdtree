@@ -586,10 +586,17 @@ function deserializeKDTree(data) {
   var points = data.p
   var ids = data.i
   if(points) {
-    var pointArray = new Float64Array(points)
-    var idArray = new Int32Array(ids)
+    var nd = points.length
+    var pointArray = pool.mallocFloat64(nd)
+    for(var i=0; i<nd; ++i) {
+      pointArray[i] = points[i]
+    }
     var n = ids.length
-    var d = (points.length/ids.length)|0
+    var idArray = pool.mallocInt32(n)
+    for(var i=0; i<n; ++i) {
+      idArray[i] = ids[i]
+    }
+    var d = (nd/n)|0
     return new KDTree(
       ndarray(pointArray, [n,d]),
       idArray,

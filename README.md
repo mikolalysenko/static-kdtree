@@ -122,7 +122,7 @@ Returns a list of the k closest points to point in the tree.
 **Time Complexity** `O((n + k) log(n + k))`, but may be faster if the points in the tree are uniformly distributed
 
 #### `kdt.serialize()`
-Returns a serializable JSON object encoding the state of the kdtree
+Returns a serializable JSON object encoding the state of the kdtree.  This can be passed to `deserialize()` to restore the kdtree.
 
 #### `kdt.dispose()`
 Release all resources associated with the kdtree
