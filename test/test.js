@@ -190,6 +190,7 @@ tape("kdtree-rnn", function(t) {
 })
 */
 
+/*
 tape("kdtree-nn", function(t) {
 
   function verifyKDT(points, queries) {
@@ -221,7 +222,6 @@ tape("kdtree-nn", function(t) {
     }
   }
 
-/*
   verifyKDT([
     [0],
     [1],
@@ -248,7 +248,6 @@ tape("kdtree-nn", function(t) {
     ], [
       [0.6, 1.1]
     ])
-*/
 
   verifyKDT(
   [ [ 0.5265642239246517, 0.6504898599814624, 0.9076471894513816 ],
@@ -283,11 +282,85 @@ tape("kdtree-nn", function(t) {
 
   t.end()
 })
+*/
 
 tape("kdtree-knn", function(t) {
+
+  function verifyKDT(points, queries) {
+    var tree = createTree(points)
+    checkTreeInvariants(t, tree, points)
+    var n = points.length
+    var d = tree.dimension
+
+    for(var i=0; i<queries.length; ++i) {
+      var q = queries[i]
+      var result = tree.knn(q[0], q[1], q[2])
+
+      //Sort points by distance
+      var closestPoints = points.map(function(p, idx) {
+        var d2 = 0.0
+        for(var k=0; k<d; ++k) {
+          d2 += Math.pow(p[k] - q[0][k], 2)
+        }
+        return [d2, idx]
+      }).filter(function(p) {
+        return p[0] < q[2]
+      })
+      closestPoints.sort(function(a,b) {
+        return a[0] - b[0]
+      })
+      if(closestPoints.length > q[1]) {
+        closestPoints = closestPoints.slice(0, q[1])
+      }
+      var closestIds = closestPoints.map(function(a) {
+        return a[1]
+      })
+
+      t.same(result, closestIds, "checking knn: [" + q[0].join() + "] k=" + q[1] + " r=" + q[2])
+    }
+  }
+
+  verifyKDT([
+    [0],
+    [1],
+    [2],
+    [3],
+    [4],
+    [5],
+    [6],
+    [7],
+    [8]
+  ], [
+    [[-1], 3, Infinity],
+    [[-1], 3, 2],
+  ])
+
+  //Fuzz
+  var pts = dup(100).map(function() {
+    return dup(3).map(Math.random)
+  })
+  var queries =dup(100).map(function() {
+    return [dup(3).map(Math.random), 5 + Math.random()|10, Math.random()]
+  })
+  verifyKDT(pts, queries)
+
   t.end()
 })
 
 tape("kdtree-serialize", function(t) {
+
+  //Fuzz
+  var pts = dup(100).map(function() {
+    return dup(4).map(Math.random)
+  })
+
+  var tree = createTree(pts)
+  checkTreeInvariants(tree)
+
+  var data = tree.serialize()
+  var ntree = createTree.deserialize(data)
+  checkTreeInvariants(ntree)
+  t.same(ntree, data)
+  
   t.end()
 })

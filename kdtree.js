@@ -3,8 +3,6 @@
 module.exports = createKDTree
 module.exports.deserialize = deserialzeKDTree
 
-var unpack = require("ndarray-unpack")
-
 var ndarray = require("ndarray")
 var ndselect = require("ndarray-select")
 var pack = require("ndarray-pack")
@@ -264,8 +262,6 @@ proto.nn = function(point, maxDistance) {
   }
   toVisit.count += 1
 
-  //console.log("query:", point)
-
   var nearest = -1
   var nearestD = maxDistance
 
@@ -273,14 +269,6 @@ proto.nn = function(point, maxDistance) {
     if(data[0] >= nearestD) {
       break
     }
-
-    /*
-    console.log("visit:", 
-      index[0], 
-      "nearD=", nearestD, 
-      "idxD=", data[0], 
-      "point=", unpack(points.pick(index[0])))
-    */
 
     var idx = index[0]
     var pidx = points.index(idx, 0)
@@ -316,12 +304,8 @@ proto.nn = function(point, maxDistance) {
     var d2l = lk + ds
     var d2h = hk + ds
 
-    //console.log("k=", k, "d=",d2l, d2h, nearestD)
-
-    //console.log("pop", idx)
     toVisit.pop()
-    //console.log([].slice.call(index, 0,toVisit.count), unpack(ndarray(toVisit.data, [toVisit.count, d+1])))
-
+    
     if(d2l < nearestD) {
       var left = 2 * idx + 1
       if(left < n) {
@@ -333,9 +317,7 @@ proto.nn = function(point, maxDistance) {
           data[vptr+i] = dataVector[i-1]
         }
         data[vptr+k+1] = lk
-        //console.log("push", left)
         toVisit.push()
-        //console.log([].slice.call(index, 0,toVisit.count), unpack(ndarray(toVisit.data, [toVisit.count, d+1])))
       }
     }
     if(d2h < nearestD) {
@@ -349,9 +331,7 @@ proto.nn = function(point, maxDistance) {
           data[vptr+i] = dataVector[i-1]
         }
         data[vptr+k+1] = hk
-        //console.log("push", right)
         toVisit.push()
-        //console.log([].slice.call(index, 0,toVisit.count), unpack(ndarray(toVisit.data, [toVisit.count, d+1])))
       }
     }
   }
@@ -361,21 +341,142 @@ proto.nn = function(point, maxDistance) {
   return this.ids[nearest]
 }
 
-proto.knn = function(point, k, maxDistance) {
+proto.knn = function(point, maxPoints, maxDistance) {
   //Check degenerate cases
+  if(typeof maxDistance === "number") {
+    if(maxDistance < 0) {
+      return []
+    }
+  } else {
+    maxDistance = Infinity
+  }
   var n = this.length
-  if(n < 1 || maxDistance < 0) {
+  if(n < 1) {
     return []
   }
-  var ids = this.ids
-  if(n < k) {
-    return Array.prototype.slice.call(this.ids, 0, n)
+  if(typeof maxPoints === "number") {
+    if(maxPoints <= 0) {
+      return []
+    }
+    maxPoints = Math.min(maxPoints, n)|0
+  } else {
+    maxPoints = n
   }
+  var ids = this.ids
 
   var d = this.dimension
   var points = this.points
+  var pointData = points.data
+  var dataVector = pool.mallocFloat64(d)
   
-  //TODO: Implement this
+  //List of closest points
+  var closestPoints = new KDTHeap(maxPoints, 1)
+  var cl_index = closestPoints.index
+  var cl_data = closestPoints.data
+
+  var toVisit = new KDTHeap(n, d+1)
+  var index = toVisit.index
+  var data = toVisit.data
+  index[0] = 0
+  for(var i=0; i<=d; ++i) {
+    data[i] = 0
+  }
+  toVisit.count += 1
+
+  var nearest = -1
+  var nearestD = maxDistance
+
+  while(toVisit.count > 0) {
+    if(data[0] >= nearestD) {
+      break
+    }
+
+    var idx = index[0]
+    var pidx = points.index(idx, 0)
+    var d2 = 0.0
+    for(var i=0; i<d; ++i) {
+      d2 += Math.pow(point[i]-pointData[pidx+i], 2)
+    }
+    if(d2 < nearestD) {
+      if(closestPoints.count >= maxPoints) {
+        closestPoints.pop()
+      }
+      var pcount = closestPoints.count
+      cl_index[pcount] = idx
+      cl_data[pcount] = -d2
+      closestPoints.push()
+      if(closestPoints.count >= maxPoints) {
+        nearestD = -cl_data[0]
+      }
+    }
+
+    //Compute distance bounds for children
+    var k = bits.log2(idx+1)%d
+    var ds = 0
+    for(var i=0; i<d; ++i) {
+      var dd = data[i+1]
+      if(i !== k) {
+        ds += dd
+      }
+      dataVector[i] = dd
+    }
+    var qk = point[k]
+    var pk = pointData[pidx+k]
+    var dk = dataVector[k]
+    var lk = dk
+    var hk = dk
+    if(qk < pk) {
+      hk = Math.max(dk, Math.pow(pk - qk, 2))
+    } else {
+      lk = Math.max(dk, Math.pow(pk - qk, 2))
+    }
+    var d2l = lk + ds
+    var d2h = hk + ds
+
+    toVisit.pop()
+    if(d2l < nearestD) {
+      var left = 2 * idx + 1
+      if(left < n) {
+        var vcount = toVisit.count
+        index[vcount] = left
+        var vptr = vcount * (d+1)
+        data[vptr] = d2l
+        for(var i=1; i<=d; ++i) {
+          data[vptr+i] = dataVector[i-1]
+        }
+        data[vptr+k+1] = lk
+        toVisit.push()
+      }
+    }
+    if(d2h < nearestD) {
+      var right = 2 * (idx + 1)
+      if(right < n) {
+        var vcount = toVisit.count
+        index[vcount] = right
+        var vptr = vcount * (d+1)
+        data[vptr] = d2h
+        for(var i=1; i<=d; ++i) {
+          data[vptr+i] = dataVector[i-1]
+        }
+        data[vptr+k+1] = hk
+        toVisit.push()
+      }
+    }
+  }
+
+  pool.freeFloat64(dataVector)
+  toVisit.dispose()
+
+  //Sort result
+  var result = new Array(closestPoints.count)
+  var ids = this.ids
+  for(var i=closestPoints.count-1; i>=0; --i) {
+    result[i] = ids[cl_index[0]]
+    closestPoints.pop()
+  }
+  closestPoints.dispose()
+
+  return result
 }
 
 proto.dispose = function kdtDispose() {

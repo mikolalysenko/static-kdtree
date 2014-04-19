@@ -48,8 +48,24 @@ module.exports = {
     tree.dispose()
     return [end-start, count]
   },
-  knn: function() {
-    return ["N/A", 0]
+  knn: function(points, queries, repeat) {
+    var tree = createKDT(points)
+    var count = 0
+    var m = queries.length
+    var start = Date.now()
+    for(var i=0; i<repeat; ++i) {
+      for(var j=0; j<m; ++j) {
+        var q = queries[j][0]
+        var kc = queries[j][1]
+        var result = tree.knn(q, kc)
+        for(var k=0; k<kc; ++k) {
+          count += result[k]
+        }
+      }
+    }
+    var end = Date.now()
+    tree.dispose()
+    return [end-start, count]
   },
   nn: function(points, queries, repeat) {
     var tree = createKDT(points)

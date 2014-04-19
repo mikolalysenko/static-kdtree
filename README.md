@@ -104,7 +104,7 @@ Visit all points contained in the sphere of radius `r` centered at `point`
 Returns the index of the closest point to `point`
 
 * `point` is a query point
-* `maxDistance` is an upper bound on the distance to search for nearest points
+* `maxDistance` is an upper bound on the distance to search for nearest points. Default `Infinity`
 
 **Returns** The index of the closest point in the tree to `point`, or `-1` if the tree is empty.
 
@@ -117,7 +117,7 @@ Returns a list of the k closest points to point in the tree.
 * `k` is the number of points to query
 * `maxDistance` bounds the distance of the returned points. Default is `Infinity`
 
-**Returns** A list of indices for the `k` closest points to `point` in the `tree` which are within distance `< maxDistance`.
+**Returns** A list of indices for the `k` closest points to `point` in the `tree` which are within distance `< maxDistance`.  The indices are ordered by distance to `point`.
 
 **Time Complexity** `O((n + k) log(n + k))`, but may be faster if the points in the tree are uniformly distributed
 

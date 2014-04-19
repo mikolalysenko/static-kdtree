@@ -5,7 +5,7 @@ var bits = require("bit-twiddle")
 var async = require("async")
 
 var cases = [
-  require("./brute-force.js"),
+  //require("./brute-force.js"),
   require("./static-kdt.js"),
   require("./ubi-bench.js") 
   //require("./look-alike.js")  //Broken
@@ -83,6 +83,7 @@ cases.forEach(function(c) {
     console.log("testing: ", c.name)
     next()
   })
+  /*
   NVALUES.forEach(function(n,i) {
     todo.push(function(next) {
       var nn = (PREPROCESS_ITER_COUNT / POINTS[i].length)|0
@@ -125,6 +126,7 @@ cases.forEach(function(c) {
       setTimeout(next, 10)
     })
   })
+*/
   KVALUES.forEach(function(k) {
     NVALUES.forEach(function(n,i) {
       todo.push(function(next) {
