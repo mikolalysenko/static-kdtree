@@ -1,0 +1,66 @@
+{
+  "name": "static-kdtree",
+  "version": "0.0.0",
+  "description": "A kdtree data structure",
+  "main": "kdtree.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "bit-twiddle": "~0.0.2",
+    "inorder-tree-layout": "~0.0.8",
+    "ndarray-pack": "~1.1.0",
+    "ndarray-scratch": "~1.0.0",
+    "ndarray-select": "~1.0.0",
+    "typedarray-pool": "~1.0.0",
+    "ndarray-ops": "~1.2.1",
+    "ndarray": "~1.0.13"
+  },
+  "devDependencies": {
+    "async": "~0.7.0",
+    "dup": "~0.0.0",
+    "tape": "~2.12.3",
+    "look-alike": "~1.0.1",
+    "kdtree": "~0.0.10",
+    "iota-array": "~0.0.1",
+    "ndarray-unpack": "~0.0.0",
+    "beefy": "^1.1.0",
+    "browserify": "^3.44.0"
+  },
+  "scripts": {
+    "test": "tape test/*.js",
+    "bench": "node bench/run.js",
+    "bench-browser": "beefy bench/run.js --open"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/mikolalysenko/static-kdtree.git"
+  },
+  "keywords": [
+    "kdtree",
+    "static",
+    "pure",
+    "javascript",
+    "range",
+    "orthogonal",
+    "bounding",
+    "box",
+    "point",
+    "sphere",
+    "query",
+    "nearest",
+    "neighbor",
+    "knn",
+    "nn",
+    "rnn",
+    "searching",
+    "closest",
+    "query"
+  ],
+  "author": "Mikola Lysenko",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mikolalysenko/static-kdtree/issues"
+  },
+  "homepage": "https://github.com/mikolalysenko/static-kdtree"
+}
