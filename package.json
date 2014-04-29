@@ -1,20 +1,20 @@
 {
   "name": "static-kdtree",
-  "version": "0.0.2",
+  "version": "1.0.0",
   "description": "A kdtree data structure",
   "main": "kdtree.js",
   "directories": {
     "test": "test"
   },
   "dependencies": {
-    "bit-twiddle": "~0.0.2",
-    "inorder-tree-layout": "~0.0.8",
-    "ndarray-pack": "~1.1.0",
-    "ndarray-scratch": "~1.0.0",
-    "ndarray-select": "~1.0.0",
-    "typedarray-pool": "~1.0.0",
-    "ndarray-ops": "~1.2.1",
-    "ndarray": "~1.0.13"
+    "bit-twiddle": "^1.0.0",
+    "inorder-tree-layout": "^1.0.0",
+    "ndarray-pack": "^1.1.0",
+    "ndarray-scratch": "^1.0.0",
+    "ndarray-select": "^1.0.0",
+    "typedarray-pool": "^1.0.0",
+    "ndarray-ops": "^1.2.1",
+    "ndarray": "^1.0.13"
   },
   "devDependencies": {
     "async": "~0.7.0",
