@@ -128,7 +128,7 @@ Visit all points contained in the sphere of radius `r` centered at `point`
 
 **Returns** The last returned value of `visit`
 
-**Time Complexity** `O(n^(1-1/d) + k)`, where `k` is the number of points in the sphere
+**Time Complexity** `O(n + k)`, where `k` is the number of points in the sphere, though perhaps much less than `n` depending on the distribution of the points.
 
 #### `kdt.nn(point[, maxDistance])`
 Returns the index of the closest point to `point`
