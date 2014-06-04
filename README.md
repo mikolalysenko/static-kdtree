@@ -24,6 +24,10 @@ It is also worth mentioning that for approximate nearest neighbor queries or que
 
 This module works both in node.js and with [browserify](http://browserify.org/).
 
+[![testling badge](https://ci.testling.com/mikolalysenko/static-kdtree.png)](https://ci.testling.com/mikolalysenko/static-kdtree)
+
+[![build status](https://secure.travis-ci.org/mikolalysenko/static-kdtree.png)](http://travis-ci.org/mikolalysenko/static-kdtree)
+
 # Example
 
 ```javascript
