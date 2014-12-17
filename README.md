@@ -7,7 +7,7 @@ Note that kd-trees are not the best data structure in all circumstances. If you 
 | Dimension | Preferred Data Structure | Complexity | Size |
 |-----------|--------------------------|------------|------|
 |     1     | [Binary search tree](http://en.wikipedia.org/wiki/Binary_search_tree)       |  O(log(n)) | O(n) |
-|    2-3    | [Range tree](http://en.wikipedia.org/wiki/Range_tree)               | O(log^(d-1)(n)) | O(n log^d (n)) |
+|    2-3    | [Range tree](http://en.wikipedia.org/wiki/Range_tree)               | O(log^(d-1)(n)) | O(n log^(d-1) (n)) |
 |   Medium  | [kd-tree](http://en.wikipedia.org/wiki/K-d_tree)                  | O(n^(1-1/d)) | O(n) |
 |   Big     | [Array](http://en.wikipedia.org/wiki/Array_data_structure)                    | O(n)       | O(n) |
 
@@ -17,7 +17,7 @@ And for nearest neighbor searching, here is a survey of some different options:
 |-----------|--------------------------|------------|------|
 |     1     | [Binary search tree](http://en.wikipedia.org/wiki/Binary_search_tree)       |  O(log(n)) | O(n) |
 |    2    | [Voronoi diagram](http://en.wikipedia.org/wiki/Voronoi_diagram) | O(log(n)) | O(n) |
-|   Medium  | [kd-tree](http://en.wikipedia.org/wiki/K-d_tree)                  | O(n^(1-1/d)) | O(n) |
+|   Medium  | [kd-tree](http://en.wikipedia.org/wiki/K-d_tree)                  | O(n) (but maybe better) | O(n) |
 |   Big     | [Array](http://en.wikipedia.org/wiki/Array_data_structure)                    | O(n)       | O(n) |
 
 It is also worth mentioning that for approximate nearest neighbor queries or queries with a fixed size radius, [grids](http://en.wikipedia.org/wiki/Regular_grid) and [locality sensitive hashing](http://en.wikipedia.org/wiki/Locality_sensitive_hashing) are strictly better options.  In these charts the transition between "Medium" and "Big" depends on how many points there are in the data structure.  As the number of points grows larger, the dimension at which kdtrees become practical goes up.
