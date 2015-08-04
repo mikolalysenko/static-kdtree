@@ -8,7 +8,7 @@ Note that kd-trees are not the best data structure in all circumstances. If you 
 |-----------|--------------------------|------------|------|
 |     1     | [Binary search tree](http://en.wikipedia.org/wiki/Binary_search_tree)       |  O(log(n)) | O(n) |
 |    2-3    | [Range tree](http://en.wikipedia.org/wiki/Range_tree)               | O(log^(d-1)(n)) | O(n log^(d-1) (n)) |
-|   Medium  | [kd-tree](http://en.wikipedia.org/wiki/K-d_tree)                  | O(n^(1-1/d)) | O(n) |
+|   Medium  | [kd-tree](http://en.wikipedia.org/wiki/K-d_tree)                  | O(d*n^(1-1/d)) | O(n) |
 |   Big     | [Array](http://en.wikipedia.org/wiki/Array_data_structure)                    | O(n)       | O(n) |
 
 And for nearest neighbor searching, here is a survey of some different options:
@@ -121,7 +121,7 @@ Executes an orthogonal range query on the kdtree
 
 **Returns** The last returned value of `visit`
 
-**Time Complexity** `O(n^(1-1/d) + k)`, where `k` is the number of points in the range.
+**Time Complexity** `O(d*n^(1-1/d) + k)`, where `k` is the number of points in the range.
 
 #### `kdt.rnn(point, radius, visit)`
 Visit all points contained in the sphere of radius `r` centered at `point`
