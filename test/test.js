@@ -5,6 +5,7 @@ var tape = require("tape")
 var dup = require("dup")
 var iota = require("iota-array")
 var unpack = require("ndarray-unpack")
+var ndarray = require("ndarray")
 
 function checkTreeInvariants(t, tree, points) {
   t.equals(tree.length, points.length, "checking point count")
@@ -49,6 +50,11 @@ tape("kdtree-constructor", function(t) {
   var emptyTree = createTree([])
   t.equals(emptyTree.length, 0, "check empty tree length")
   t.equals(emptyTree.dimension, 0, "checking empty tree dimension")
+
+  var data = ndarray(new Uint8Array([1, 2, 3, 4, 5, 6]), [2, 3])
+  var tree = createTree(data)
+  t.equals(tree.length, 2, "check non-empty tree length")
+  t.equals(tree.dimension, 3, "checking empty tree dimension")
 
   t.end()
 })

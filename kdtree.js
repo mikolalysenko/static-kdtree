@@ -522,7 +522,7 @@ function createKDTree(points) {
     } else {
       type = "float64"
     }
-    indexed = ndarray(pool.malloc(n*(d+1)), [n, d+1])
+    indexed = ndarray(pool.malloc(n*(d+1), type), [n, d+1])
     ops.assign(indexed.hi(n,d), points)
   }
   for(var i=0; i<n; ++i) {
