@@ -491,6 +491,33 @@ proto.dispose = function kdtDispose() {
   this.length = 0
 }
 
+function Queue() {
+  this.data = []
+  this.offset = 0
+}
+
+Queue.prototype.size = function() {
+  return this.data.length - this.offset
+}
+
+Queue.prototype.push = function(item) {
+  return this.data.push(item)
+}
+
+Queue.prototype.pop = function() {
+  if (this.size() === 0) {
+    return undefined
+  }
+
+  var ret = this.data[this.offset]
+  this.offset++
+  if (this.data.length > 1024 && this.offset * 2 > this.data.length) {
+    this.data = this.data.slice(this.offset)
+    this.offset = 0
+  }
+  return ret
+}
+
 function createKDTree(points) {
   var n, d, indexed
   if(Array.isArray(points)) {
@@ -522,7 +549,7 @@ function createKDTree(points) {
     } else {
       type = "float64"
     }
-    indexed = ndarray(pool.malloc(n*(d+1)), [n, d+1])
+    indexed = ndarray(pool.malloc(n*(d+1), type), [n, d+1])
     ops.assign(indexed.hi(n,d), points)
   }
   for(var i=0; i<n; ++i) {
@@ -539,9 +566,10 @@ function createKDTree(points) {
   var sel_cmp = ndselect.compile(indexed.order, true, indexed.dtype)
 
   //Walk tree in level order
-  var toVisit = [indexed]
+  var toVisit = new Queue()
+  toVisit.push(indexed)
   while(pointer < n) {
-    var head = toVisit.shift()
+    var head = toVisit.pop()
     var array = head
     var nn = array.shape[0]|0
     
